@@ -357,7 +357,6 @@ const exportToExcel = () => {
                               <option value="">All</option>
                               <option value="Male">Male</option>
                               <option value="Female">Female</option>
-                              <option value="Unknown">Unknown</option>
                             </Form.Select>
                           </Col>
 
@@ -391,7 +390,7 @@ const exportToExcel = () => {
                               <option value="Upper-Middle">Upper-Middle</option>
                               <option value="Upper-Income">Upper-Income</option>
                               <option value="Rich">Rich</option>
-                              <option value="Unknown">Unknown</option>
+
                             </Form.Select>
                           </Col>
 
@@ -413,7 +412,7 @@ const exportToExcel = () => {
                               <option value="With Honors">With Honors</option>
                               <option value="With High Honors">With High Honors</option>
                               <option value="With Highest Honors">With Highest Honors</option>
-                              <option value="Unknown">No GWA Entered</option>
+
                             </Form.Select>
                           </Col>
                         </Row>
