@@ -413,7 +413,7 @@ const exportToExcel = () => {
                               <option value="With Honors">With Honors</option>
                               <option value="With High Honors">With High Honors</option>
                               <option value="With Highest Honors">With Highest Honors</option>
-                              <option value="Unknown">Unknown</option>
+                              <option value="Unknown">No GWA Entered</option>
                             </Form.Select>
                           </Col>
                         </Row>
