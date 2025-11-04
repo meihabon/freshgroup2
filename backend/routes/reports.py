@@ -17,7 +17,7 @@ async def get_all_students_from_db():
         raise HTTPException(status_code=500, detail="Database connection failed")
     cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
+    cursor.execute("SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1")
     latest = cursor.fetchone()
     if not latest:
         cursor.close()

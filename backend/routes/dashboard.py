@@ -12,7 +12,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     cursor = connection.cursor(dictionary=True)
 
     # Get latest dataset
-    cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
+    cursor.execute("SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1")
     latest_dataset = cursor.fetchone()
     if not latest_dataset:
         cursor.close()

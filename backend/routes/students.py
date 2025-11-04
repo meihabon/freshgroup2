@@ -26,7 +26,7 @@ async def get_students(
         raise HTTPException(status_code=500, detail="Database connection failed")
     cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
+    cursor.execute("SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1")
     latest_dataset = cursor.fetchone()
     if not latest_dataset:
         cursor.close()
@@ -161,7 +161,7 @@ async def update_student(
                 conn3 = get_db_connection()
                 if conn3:
                     cur3 = conn3.cursor(dictionary=True)
-                    cur3.execute("SELECT k FROM clusters WHERE dataset_id = (SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1) ORDER BY id DESC LIMIT 1")
+                    cur3.execute("SELECT k FROM clusters WHERE dataset_id = (SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1) ORDER BY id DESC LIMIT 1")
                     row = cur3.fetchone()
                     cur3.close(); conn3.close()
                     k_to_use = int(row["k"]) if row and row.get("k") else 3
