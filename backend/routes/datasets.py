@@ -241,10 +241,15 @@ async def upload_dataset(
             raise HTTPException(status_code=500, detail="Database connection failed")
         cursor = connection.cursor()
 
+        # Deactivate all previous datasets
+        cursor.execute("UPDATE datasets SET is_active = FALSE")
+
+        # Insert new dataset and mark as active
         cursor.execute(
-            "INSERT INTO datasets (filename, uploaded_by, upload_date) VALUES (%s, %s, %s)",
+            "INSERT INTO datasets (filename, uploaded_by, upload_date, is_active) VALUES (%s, %s, %s, TRUE)",
             (file.filename, current_user["id"], datetime.now())
         )
+
         dataset_id = cursor.lastrowid
 
         cursor.execute(
@@ -344,14 +349,18 @@ async def get_datasets(current_user: dict = Depends(get_current_user)):
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute("""
-        SELECT d.id, d.filename, d.upload_date, u.email as uploaded_by_email,
-            COUNT(DISTINCT s.id) AS student_count,
-            MAX(c.k) AS cluster_count
+        SELECT d.id,
+               d.filename,
+               d.upload_date,
+               u.email AS uploaded_by_email,
+               COUNT(DISTINCT s.id) AS student_count,
+               MAX(c.k) AS cluster_count,
+               d.is_active
         FROM datasets d
         LEFT JOIN users u ON d.uploaded_by = u.id
         LEFT JOIN students s ON d.id = s.dataset_id
         LEFT JOIN clusters c ON d.id = c.dataset_id
-        GROUP BY d.id, d.filename, d.upload_date, u.email
+        GROUP BY d.id, d.filename, d.upload_date, u.email, d.is_active
         ORDER BY d.upload_date DESC
     """)
 
@@ -359,6 +368,7 @@ async def get_datasets(current_user: dict = Depends(get_current_user)):
     cursor.close()
     connection.close()
     return datasets
+
 
 # -----------------------------
 # Preview Dataset
@@ -450,3 +460,40 @@ async def delete_dataset(dataset_id: int, current_user: dict = Depends(get_curre
     log_activity(current_user["id"], "Delete Dataset", f"Admin deleted dataset ID: {dataset_id}")
 
     return {"message": "Dataset deleted successfully"}
+
+
+# -----------------------------
+# Reactivate Archived Dataset
+# -----------------------------
+@router.post("/datasets/{dataset_id}/activate")
+async def activate_dataset(dataset_id: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can activate datasets")
+
+    connection = get_db_connection()
+    if not connection:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    cursor = connection.cursor()
+
+    # Ensure dataset exists
+    cursor.execute("SELECT id FROM datasets WHERE id = %s", (dataset_id,))
+    if not cursor.fetchone():
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    # Set all to archived and activate selected one
+    cursor.execute("UPDATE datasets SET is_active = FALSE")
+    cursor.execute("UPDATE datasets SET is_active = TRUE WHERE id = %s", (dataset_id,))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    # Log activity
+    try:
+        await log_activity(current_user["id"], "Activate Dataset", f"Admin activated dataset ID: {dataset_id}")
+    except Exception:
+        pass
+
+    return {"message": f"Dataset {dataset_id} activated successfully"}

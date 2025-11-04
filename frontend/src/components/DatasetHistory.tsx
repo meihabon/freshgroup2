@@ -22,6 +22,7 @@ interface Dataset {
   upload_date: string
   student_count: number
   cluster_count: number
+  is_active: boolean
 }
 
 function DatasetHistory() {
@@ -220,6 +221,17 @@ const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShowViewModal(true)
   }
 
+const activateDataset = async (id: number) => {
+  if (!window.confirm("Make this dataset active again? This will replace the current active dataset.")) return;
+
+  try {
+    await API.post(`/datasets/${id}/activate`);
+    setSuccess("Dataset reactivated successfully!");
+    fetchDatasets();
+  } catch (error: any) {
+    setError(error.response?.data?.detail || "Failed to reactivate dataset");
+  }
+};
 
 
   const deleteDataset = async (id: number) => {
@@ -513,13 +525,27 @@ const elbowPlot = () => {
                         )}
                       </td>
                       <td data-label="Actions">
-                        <div className="d-flex gap-2">
-                          <Button variant="outline-info" size="sm" onClick={(e) => { e.stopPropagation(); handlePreview(dataset.id); }}>
+                        <div className="d-flex gap-2 justify-content-center align-items-center">
+                          {/* 👁 Preview */}
+                          <Button
+                            variant="outline-info"
+                            size="sm"
+                            className="p-1"
+                            title="Preview Dataset"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePreview(dataset.id);
+                            }}
+                          >
                             <Eye size={14} />
                           </Button>
+
+                          {/* ⬇️ Download */}
                           <Button
                             variant="outline-success"
                             size="sm"
+                            className="p-1"
+                            title="Download as Excel"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDownloadAsExcel(dataset.id);
@@ -528,11 +554,39 @@ const elbowPlot = () => {
                             <Download size={14} />
                           </Button>
 
-                          <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); deleteDataset(dataset.id); }}>
+                          {/* 🔄 Activate (only if archived) */}
+                          {!dataset.is_active && (
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              className="p-1"
+                              title="Make Active"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                activateDataset(dataset.id);
+                              }}
+                            >
+                              <Database size={14} />
+                            </Button>
+                          )}
+
+                          {/* 🗑 Delete */}
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            className="p-1"
+                            title="Delete Dataset"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteDataset(dataset.id);
+                            }}
+                          >
                             <Trash2 size={14} />
                           </Button>
                         </div>
                       </td>
+
+
                     </tr>
                   ))}
                 </tbody>
