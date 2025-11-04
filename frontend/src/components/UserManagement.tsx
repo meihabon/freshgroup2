@@ -522,57 +522,65 @@ const handleResetPassword = async () => {
                       </td>
                       <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
                       <td data-label="Actions" className="text-nowrap">
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          className="me-2"
-                          title="Edit User"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShowEdit(u);
-                          }}
-                        >
-                          <Edit size={14} />
-                        </Button>
+                        <div className="d-flex gap-2 justify-content-center align-items-center">
+                          {/* ✏️ Edit */}
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="p-1"
+                            title="Edit User"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShowEdit(u);
+                            }}
+                          >
+                            <Edit size={14} />
+                          </Button>
 
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          className="me-2"
-                          title="Reset Password"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShowResetPassword(u);
-                          }}
-                        >
-                          <Key size={14} />
-                        </Button>
+                          {/* 🔑 Reset Password */}
+                          <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            className="p-1"
+                            title="Reset Password"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShowResetPassword(u);
+                            }}
+                          >
+                            <Key size={14} />
+                          </Button>
 
-                        <Button
-                          variant={u.active ? "outline-danger" : "outline-success"}
-                          size="sm"
-                          title={u.active ? "Deactivate User" : "Activate User"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleActive(u);
-                          }}
-                        >
-                          {u.active ? <ShieldOff size={14} /> : <Shield size={14} />}
-                        </Button>
-                        
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          className="me-2"
-                          title="Delete User"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteUser(u.id);
-                          }}
-                        >
-                          <Trash size={14} />
-                        </Button>
+                          {/* 🛡 Activate / Deactivate */}
+                          <Button
+                            variant={u.active ? "outline-warning" : "outline-success"}
+                            size="sm"
+                            className="p-1"
+                            title={u.active ? "Deactivate User" : "Activate User"}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleActive(u);
+                            }}
+                          >
+                            {u.active ? <ShieldOff size={14} /> : <Shield size={14} />}
+                          </Button>
+
+                          {/* 🗑 Delete */}
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            className="p-1"
+                            title="Delete User"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteUser(u.id);
+                            }}
+                          >
+                            <Trash size={14} />
+                          </Button>
+                        </div>
                       </td>
+
 
                     </tr>
                   ))}
