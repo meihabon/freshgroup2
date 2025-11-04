@@ -670,11 +670,12 @@ const renderClusterSection = (
                   </Form.Select>
                 </div>
               </div>
-              {/* 🔍 Compact Search & Filter Bar */}
-              <Card className="mb-3">
+              {/* 🔍 Complete Search & Filter Bar */}
+              <Card className="mb-3 shadow-sm">
                 <Card.Body>
                   <Row className="align-items-center gy-2">
-                    <Col xs={12} md={6}>
+                    {/* Search */}
+                    <Col xs={12} md={6} lg={4}>
                       <InputGroup size="sm">
                         <InputGroup.Text><Search size={14} /></InputGroup.Text>
                         <Form.Control
@@ -685,8 +686,13 @@ const renderClusterSection = (
                       </InputGroup>
                     </Col>
 
-                    <Col xs={6} md={3}>
-                      <Form.Select size="sm" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}>
+                    {/* Program */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={programFilter}
+                        onChange={(e) => setProgramFilter(e.target.value)}
+                      >
                         <option value="">All Programs</option>
                         {[...new Set(data.clusters[selectedCluster].map(s => s.program))].map(p => (
                           <option key={p} value={p}>{p}</option>
@@ -694,23 +700,104 @@ const renderClusterSection = (
                       </Form.Select>
                     </Col>
 
-                    <Col xs={6} md={3}>
-                      <Form.Select size="sm" value={sexFilter} onChange={(e) => setSexFilter(e.target.value)}>
+                    {/* Sex */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={sexFilter}
+                        onChange={(e) => setSexFilter(e.target.value)}
+                      >
                         <option value="">All Sexes</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                       </Form.Select>
                     </Col>
 
-                    <Col xs={6} md={3}>
-                      <Form.Select size="sm" value={areaTypeFilter} onChange={(e) => setAreaTypeFilter(e.target.value)}>
+                    {/* Municipality */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={municipalityFilter}
+                        onChange={(e) => setMunicipalityFilter(e.target.value)}
+                      >
+                        <option value="">All Municipalities</option>
+                        {[...new Set(data.clusters[selectedCluster].map(s => s.municipality))].map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+
+                    {/* Income Category */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={incomeFilter}
+                        onChange={(e) => setIncomeFilter(e.target.value)}
+                      >
+                        <option value="">All Income Categories</option>
+                        {[...new Set(data.clusters[selectedCluster].map(s => s.IncomeCategory))].map(i => (
+                          <option key={i} value={i}>{i}</option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+
+                    {/* Honors */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={honorsFilter}
+                        onChange={(e) => setHonorsFilter(e.target.value)}
+                      >
+                        <option value="">All Honors</option>
+                        {[...new Set(data.clusters[selectedCluster].map(s => s.Honors))].map(h => (
+                          <option key={h} value={h}>{h}</option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+
+                    {/* SHS Type */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={shsFilter}
+                        onChange={(e) => setShsFilter(e.target.value)}
+                      >
+                        <option value="">All SHS Types</option>
+                        {[...new Set(data.clusters[selectedCluster].map(s => s.SHS_type))].map(st => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+
+                    {/* SHS Origin */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={schoolFilter}
+                        onChange={(e) => setSchoolFilter(e.target.value)}
+                      >
+                        <option value="">All SHS Origins</option>
+                        {[...new Set(data.clusters[selectedCluster].map(s => s.SHS_origin))].map(so => (
+                          <option key={so} value={so}>{so}</option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+
+                    {/* Area Type */}
+                    <Col xs={6} md={4} lg={2}>
+                      <Form.Select
+                        size="sm"
+                        value={areaTypeFilter}
+                        onChange={(e) => setAreaTypeFilter(e.target.value)}
+                      >
                         <option value="">All Areas</option>
                         <option value="Upland">Upland</option>
                         <option value="Lowland">Lowland</option>
                       </Form.Select>
                     </Col>
 
-                    <Col xs={6} md={3}>
+                    {/* Reset Button */}
+                    <Col xs={12} md="auto" className="text-md-end">
                       <Button
                         size="sm"
                         variant="outline-secondary"
@@ -732,6 +819,7 @@ const renderClusterSection = (
                   </Row>
                 </Card.Body>
               </Card>
+
 
               <div className="table-responsive">
                 <Table striped hover responsive className="mb-0 clusters-table table-sm">
