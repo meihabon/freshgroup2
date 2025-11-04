@@ -391,19 +391,36 @@ async def recluster_dataset_by_id(dataset_id: int, current_user: dict):
         cursor.close(); connection.close()
         raise HTTPException(status_code=404, detail="No student data found for this dataset")
 
+    # ✅ Convert to DataFrame
+    import pandas as pd
     df = pd.DataFrame(students)
+
+    # ✅ Normalize columns and encode categoricals (same as main clustering)
+    from .clusters import normalize_dataframe_columns, encode_categorical_safe
+    from utils_complete import filter_complete_students_df
+
+    df = normalize_dataframe_columns(df)
+    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type", "shs_origin"])
     df_complete = filter_complete_students_df(df)
+
     if df_complete.empty:
         cursor.close(); connection.close()
         raise HTTPException(status_code=400, detail="No complete student records to cluster")
 
-    # ✅ Select features (GWA + Income)
-    X = df_complete[['gwa', 'income']].fillna(0).astype(float)
+    # ✅ Ensure GWA and Income exist after normalization
+    if not {"gwa", "income"}.issubset(df_complete.columns):
+        raise HTTPException(status_code=400, detail=f"Expected 'gwa' and 'income' columns not found. Columns: {list(df_complete.columns)}")
+
+    # ✅ Perform clustering
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.cluster import KMeans
+    import json
+
+    X = df_complete[["gwa", "income"]].fillna(0).astype(float)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # ✅ Choose cluster count automatically
-    k = 4  # You can tweak or auto-detect using elbow logic
+    k = 4  # or replace with dynamic detection
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
     preds = kmeans.fit_predict(X_scaled)
     centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
@@ -422,12 +439,12 @@ async def recluster_dataset_by_id(dataset_id: int, current_user: dict):
     )
     new_cluster_id = cursor.lastrowid
 
-    # ✅ Insert new student-cluster mapping
+    # ✅ Insert student-cluster mapping
     clustered_student_ids = df_complete['id'].astype(int).tolist()
-    for local_idx, sid in enumerate(clustered_student_ids):
+    for i, sid in enumerate(clustered_student_ids):
         cursor.execute(
             "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-            (sid, new_cluster_id, int(preds[local_idx]))
+            (sid, new_cluster_id, int(preds[i]))
         )
 
     connection.commit()
