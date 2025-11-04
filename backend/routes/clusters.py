@@ -374,3 +374,64 @@ async def pairwise_clusters(
         "x_categories": df[x_canon].unique().tolist() if x_canon in {"sex","program","municipality","shs_type", "shs_origin"} else None,
         "y_categories": df[y_canon].unique().tolist() if y_canon in {"sex","program","municipality","shs_type", "shs_origin"} else None,
     }
+
+async def recluster_dataset_by_id(dataset_id: int, current_user: dict):
+    """
+    Helper: recluster a specific dataset by its ID when it becomes active.
+    """
+    connection = get_db_connection()
+    if not connection:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    cursor = connection.cursor(dictionary=True)
+
+    # ✅ Load students for this dataset
+    cursor.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
+    students = cursor.fetchall()
+    if not students:
+        cursor.close(); connection.close()
+        raise HTTPException(status_code=404, detail="No student data found for this dataset")
+
+    df = pd.DataFrame(students)
+    df_complete = filter_complete_students_df(df)
+    if df_complete.empty:
+        cursor.close(); connection.close()
+        raise HTTPException(status_code=400, detail="No complete student records to cluster")
+
+    # ✅ Select features (GWA + Income)
+    X = df_complete[['gwa', 'income']].fillna(0).astype(float)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # ✅ Choose cluster count automatically
+    k = 4  # You can tweak or auto-detect using elbow logic
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    preds = kmeans.fit_predict(X_scaled)
+    centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
+
+    # ✅ Remove old clusters for this dataset
+    cursor.execute("SELECT id FROM clusters WHERE dataset_id = %s", (dataset_id,))
+    old_clusters = cursor.fetchall() or []
+    for oc in old_clusters:
+        cursor.execute("DELETE FROM student_cluster WHERE cluster_id = %s", (oc["id"],))
+    cursor.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
+
+    # ✅ Insert new cluster data
+    cursor.execute(
+        "INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
+        (dataset_id, k, json.dumps(centroids))
+    )
+    new_cluster_id = cursor.lastrowid
+
+    # ✅ Insert new student-cluster mapping
+    clustered_student_ids = df_complete['id'].astype(int).tolist()
+    for local_idx, sid in enumerate(clustered_student_ids):
+        cursor.execute(
+            "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+            (sid, new_cluster_id, int(preds[local_idx]))
+        )
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return {"dataset_id": dataset_id, "clusters_created": len(centroids)}

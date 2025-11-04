@@ -463,7 +463,7 @@ async def delete_dataset(dataset_id: int, current_user: dict = Depends(get_curre
 
 
 # -----------------------------
-# Reactivate Archived Dataset
+# Reactivate Archived Dataset (and re-cluster)
 # -----------------------------
 @router.post("/datasets/{dataset_id}/activate")
 async def activate_dataset(dataset_id: int, current_user: dict = Depends(get_current_user)):
@@ -473,27 +473,41 @@ async def activate_dataset(dataset_id: int, current_user: dict = Depends(get_cur
     connection = get_db_connection()
     if not connection:
         raise HTTPException(status_code=500, detail="Database connection failed")
-    cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
 
-    # Ensure dataset exists
+    # ✅ Check if the dataset exists
     cursor.execute("SELECT id FROM datasets WHERE id = %s", (dataset_id,))
-    if not cursor.fetchone():
+    target_dataset = cursor.fetchone()
+    if not target_dataset:
         cursor.close()
         connection.close()
         raise HTTPException(status_code=404, detail="Dataset not found")
 
-    # Set all to archived and activate selected one
-    cursor.execute("UPDATE datasets SET is_active = FALSE")
+    # ✅ Archive the currently active one
+    cursor.execute("UPDATE datasets SET is_active = FALSE WHERE is_active = TRUE")
+
+    # ✅ Activate the chosen dataset
     cursor.execute("UPDATE datasets SET is_active = TRUE WHERE id = %s", (dataset_id,))
     connection.commit()
 
     cursor.close()
     connection.close()
 
-    # Log activity
+    # ✅ Re-cluster this dataset automatically
     try:
-        await log_activity(current_user["id"], "Activate Dataset", f"Admin activated dataset ID: {dataset_id}")
+        from .clusters import recluster_dataset_by_id  # helper (we'll add next)
+        recluster_result = await recluster_dataset_by_id(dataset_id, current_user)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Activated dataset but reclustering failed: {str(e)}")
+
+    # ✅ Log activity
+    try:
+        await log_activity(current_user["id"], "Activate Dataset",
+                           f"Admin reactivated dataset ID: {dataset_id} and re-clustered it")
     except Exception:
         pass
 
-    return {"message": f"Dataset {dataset_id} activated successfully"}
+    return {
+        "message": f"Dataset {dataset_id} activated and re-clustered successfully",
+        "recluster_result": recluster_result
+    }
