@@ -48,16 +48,22 @@ function ActivityLogs() {
 
 // ✅ Format date & time (PST)
 const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr)
-  return date.toLocaleString('en-PH', {
-    timeZone: 'Asia/Manila', // ensure PST
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  try {
+    const date = new Date(dateStr)
+    // Convert using PH locale and timezone explicitly
+    return date.toLocaleString('en-PH', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    })
+  } catch {
+    return dateStr
+  }
 }
 
   // Filters
@@ -236,7 +242,7 @@ const formatDate = (dateStr: string) => {
                     {user?.role === 'Admin' && <th>User</th>}
                     <th>Action</th>
                     <th>Details</th>
-                    <th style={{ width: '180px' }}>Date & Time (PST)</th>
+                    <th style={{ width: '180px' }}>Date & Time</th>
                   </tr>
                 </thead>
                 <tbody>
