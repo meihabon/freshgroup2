@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Row, Col, Card, Spinner, Alert, Modal, Table, Accordion } from 'react-bootstrap'
-import { Users, GraduationCap, MapPin, DollarSign, School, Award, User } from 'lucide-react'
+import { Users, GraduationCap, MapPin, Coins, School, Award, User } from 'lucide-react'
 import Plot from 'react-plotly.js'
 import { useAuth } from "../context/AuthContext"
+
 interface DashboardStats {
   total_students: number
   most_common_program: string
   most_common_municipality: string
   most_common_sex: string
   most_common_income: string
+  most_common_school: string
   most_common_shs: string
   most_common_honors: string
   sex_distribution: Record<string, number>
@@ -16,6 +18,7 @@ interface DashboardStats {
   municipality_distribution: Record<string, number>
   income_distribution: Record<string, number>
   shs_distribution: Record<string, number>
+  school_distribution: Record<string, number>
   honors_distribution: Record<string, number>
 }
 
@@ -71,6 +74,8 @@ function Dashboard() {
         return `The ${maxCategory} income tier accounts for ${percentage}% of students. This is important for financial aid, scholarship prioritization, and student support planning.`
       case 'SHS Type Distribution':
         return `${maxCategory} is the predominant SHS background (${percentage}%), which may indicate differences in academic preparation and the need for bridging programs.`
+      case 'SHS Origin Distribution':
+        return `${maxCategory} is the most common senior high school origin (${percentage}%), suggesting that certain schools contribute more students to this cluster. This pattern can help identify feeder schools for targeted partnerships or outreach programs.`;
       case 'Honors Distribution':
         return `${maxCategory} represents ${percentage}% of students in honors classification. This gives a quick snapshot of academic achievement and recognition opportunities.`
       default:
@@ -100,6 +105,7 @@ function Dashboard() {
     { title: 'Municipality Distribution', data: stats.municipality_distribution },
     { title: 'Income Distribution', data: stats.income_distribution },
     { title: 'SHS Type Distribution', data: stats.shs_distribution },
+    { title: 'SHS Origin Distribution', data: stats.school_distribution },
     { title: 'Honors Distribution', data: stats.honors_distribution },
   ]
 
@@ -160,6 +166,11 @@ function Dashboard() {
                         bridging programs or remedial support.
                       </li>
                       <li>
+                        <b>SHS Origin:</b> Identifies the specific senior high schools attended by students, uncovering 
+                        <i> feeder school patterns</i> that influence student readiness. This helps the institution 
+                        <i> strengthen partnerships</i> and align academic support with originating schools.
+                      </li>
+                      <li>
                         <b>Honors:</b> Recognizes achievers and supports
                         <i> merit-based scholarships, recognition programs, and academic excellence tracking</i>.
                         Provides benchmarks for overall student performance.
@@ -215,7 +226,7 @@ function Dashboard() {
         <Col md={3} className="mb-3">
           <Card className="h-100 clickable-card" onClick={() => openModal('Income Breakdown', stats.income_distribution)}>
             <Card.Body className="d-flex align-items-center">
-              <DollarSign size={40} className="text-danger me-3" />
+              <Coins size={40} className="text-warning me-3" /> 
               <div>
                 <h6 className="fw-bold mb-1">{stats.most_common_income}</h6>
                 <p className="text-muted mb-0">Most Common Income</p>
@@ -233,6 +244,21 @@ function Dashboard() {
               <div>
                 <h6 className="fw-bold mb-1">{stats.most_common_shs}</h6>
                 <p className="text-muted mb-0">Most Common SHS Type</p>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col md={4} className="mb-3">
+          <Card
+            className="h-100 clickable-card"
+            onClick={() => openModal('SHS Origin Breakdown', stats.school_distribution)}
+          >
+            <Card.Body className="d-flex align-items-center">
+              <School size={40} className="text-primary me-3" />
+              <div>
+                <h6 className="fw-bold mb-1">{stats.most_common_school}</h6>
+                <p className="text-muted mb-0">Most Common SHS Origin</p>
               </div>
             </Card.Body>
           </Card>

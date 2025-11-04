@@ -31,6 +31,7 @@ interface Student {
   municipality?: string
   income?: number
   SHS_type?: string
+  SHS_origin?: string
   GWA?: number
   Honors?: string
   IncomeCategory?: string
@@ -89,7 +90,7 @@ function Clusters() {
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewedStudent, setViewedStudent] = useState<Student | null>(null)
 
-  const pairableFeatures = ["GWA", "income", "sex", "program", "municipality", "shs_type"]
+  const pairableFeatures = ["GWA", "income", "sex", "program", "municipality", "shs_type", "shs_origin"]
 
   useEffect(() => {
     fetchOfficialClusters()
@@ -382,6 +383,7 @@ const fetchOfficialClusters = async () => {
           municipality: s.municipality,
           income: s.income,
           SHS_type: s.SHS_type,
+          SHS_origin: s.SHS_origin,
           GWA: s.GWA,
           Honors: s.Honors,
           IncomeCategory: s.IncomeCategory,
@@ -427,6 +429,7 @@ const fetchOfficialClusters = async () => {
           municipality: s.municipality,
           income: s.income,
           SHS_type: s.SHS_type,
+          SHS_origin: s.SHS_origin,
           GWA: s.GWA,
           Honors: s.Honors,
           IncomeCategory: s.IncomeCategory,
@@ -669,6 +672,7 @@ const renderClusterSection = (
                       <th>Honors</th>
                       <th>Income</th>
                       <th>Income Category</th>
+                      <th>SHS Origin</th>
                       <th>SHS Type</th>
                     </tr>
                   </thead>
@@ -698,6 +702,7 @@ const renderClusterSection = (
                           <td data-label="Honors">{s.Honors}</td>
                           <td data-label="Income">₱{(s.income ?? 0).toLocaleString?.() ?? s.income}</td>
                           <td data-label="Income Category">{s.IncomeCategory}</td>
+                          <td data-label="SHS Origin">{s.SHS_origin}</td>
                           <td data-label="SHS Type">{s.SHS_type}</td>
                         </tr>
                       ))}
@@ -725,6 +730,7 @@ const renderClusterSection = (
             { label: 'Municipality', value: viewedStudent.municipality || '—' },
             { label: 'Area Type', value: getAreaType(viewedStudent.municipality) },
             { label: 'Income', value: viewedStudent.income === undefined || viewedStudent.income === null ? '—' : `₱${viewedStudent.income.toLocaleString()}` },
+            { label: 'SHS Origin', value: viewedStudent.SHS_origin || '—' },
             { label: 'SHS Type', value: viewedStudent.SHS_type || '—' },
             { label: 'GWA', value: viewedStudent.GWA === undefined || viewedStudent.GWA === null ? '—' : viewedStudent.GWA },
             { label: 'Honors', value: viewedStudent.Honors || '—' },

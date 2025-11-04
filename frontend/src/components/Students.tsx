@@ -20,6 +20,7 @@ interface Student {
   municipality: string
   income: number
   SHS_type: string
+  SHS_origin: string
   GWA: number
   Honors: string
   IncomeCategory: string
@@ -39,6 +40,7 @@ function Students() {
   const [municipalityFilter, setMunicipalityFilter] = useState('')
   const [incomeFilter, setIncomeFilter] = useState('')
   const [shsFilter, setShsFilter] = useState('')
+  const [schoolFilter, setSchoolFilter] = useState('')
   const [honorsFilter, setHonorsFilter] = useState('')
   const [areaTypeFilter, setAreaTypeFilter] = useState("");
 
@@ -47,6 +49,7 @@ function Students() {
   const [programs, setPrograms] = useState<string[]>([])
   const [municipalities, setMunicipalities] = useState<string[]>([])
   const [shsTypes, setShsTypes] = useState<string[]>([])
+  const [shsOrigin, setShsOrigin] = useState<string[]>([])
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -59,7 +62,7 @@ function Students() {
   useEffect(() => {
     applyFilters()
     setCurrentPage(1)
-  }, [students, searchTerm, programFilter, sexFilter, municipalityFilter, incomeFilter, shsFilter, honorsFilter, areaTypeFilter])
+  }, [students, searchTerm, programFilter, sexFilter, municipalityFilter, incomeFilter, shsFilter, schoolFilter, honorsFilter, areaTypeFilter])
 
   const fetchStudents = async () => {
     try {
@@ -69,10 +72,12 @@ function Students() {
       const uniquePrograms = [...new Set(response.data.map((s: Student) => s.program))].sort()
       const uniqueMunicipalities = [...new Set(response.data.map((s: Student) => s.municipality))].sort()
       const uniqueShsTypes = [...new Set(response.data.map((s: Student) => s.SHS_type))].sort()
+      const uniqueShsOrigin = [...new Set(response.data.map((s: Student) => s.SHS_origin))].sort()
 
     setPrograms(uniquePrograms as string[])
     setMunicipalities(uniqueMunicipalities as string[])
     setShsTypes(uniqueShsTypes as string[])
+    setShsOrigin(uniqueShsOrigin as string[])
 
     } catch (error: any) {
       // log error for debugging; avoid throwing UI-blocking state
@@ -94,6 +99,7 @@ function Students() {
     if (municipalityFilter) filtered = filtered.filter(s => s.municipality === municipalityFilter)
     if (incomeFilter) filtered = filtered.filter(s => s.IncomeCategory === incomeFilter)
     if (shsFilter) filtered = filtered.filter(s => s.SHS_type === shsFilter)
+    if (schoolFilter) filtered = filtered.filter(s => s.SHS_origin === schoolFilter)
     if (honorsFilter) filtered = filtered.filter(s => s.Honors === honorsFilter)
     if (areaTypeFilter) {
       filtered = filtered.filter((s) => getAreaType(s.municipality) === areaTypeFilter);
@@ -109,6 +115,7 @@ function Students() {
     setMunicipalityFilter('')
     setIncomeFilter('')
     setShsFilter('')
+    setSchoolFilter('')
     setHonorsFilter('')
   }
 
@@ -123,6 +130,7 @@ const exportToCSV = () => {
     'area_type',
     'income',
     'SHS_type',
+    'SHS_origin',
     'GWA',
     'Honors',
     'IncomeCategory',
@@ -140,6 +148,7 @@ const exportToCSV = () => {
         getAreaType(student.municipality),
         student.income,
         student.SHS_type,
+        student.SHS_origin,
         student.GWA,
         student.Honors,
         student.IncomeCategory,
@@ -172,6 +181,7 @@ const exportToExcel = () => {
     "Area Type": getAreaType(student.municipality),
     Income: student.income,
     "SHS Type": student.SHS_type,
+    "SHS Origin": student.SHS_origin,
     GWA: student.GWA,
     Honors: student.Honors,
     "Income Category": student.IncomeCategory,
@@ -261,6 +271,7 @@ const exportToExcel = () => {
       program: selectedStudent.program,
       municipality: selectedStudent.municipality,
       SHS_type: selectedStudent.SHS_type,
+      SHS_origin: selectedStudent.SHS_origin,
       GWA: selectedStudent.GWA,
       income: selectedStudent.income,
     }
@@ -404,6 +415,16 @@ const exportToExcel = () => {
                             </Form.Select>
                           </Col>
 
+                        <Col xs={12} md={6} lg={3}>
+                          <Form.Label className="small fw-semibold">SHS Origin</Form.Label>
+                          <Form.Select value={schoolFilter} onChange={(e) => setSchoolFilter(e.target.value)} size="sm">
+                            <option value="">All SHS Origins</option>
+                            {shsOrigin.map(origin => (
+                              <option key={origin} value={origin}>{origin}</option>
+                            ))}
+                          </Form.Select>
+                        </Col>
+
                           <Col xs={12} md={6} lg={3}>
                             <Form.Label className="small fw-semibold">Honors</Form.Label>
                             <Form.Select value={honorsFilter} onChange={(e) => setHonorsFilter(e.target.value)} size="sm">
@@ -450,6 +471,7 @@ const exportToExcel = () => {
                       <th className="col-area" style={{ width: '6%' }}>Area Type</th>
                       <th className="col-income" style={{ width: '8%' }}>Income</th>
                       <th className="col-shs" style={{ width: '8%' }}>Senior High School Type</th>
+                      <th className="col-school" style={{ width: '8%' }}>Senior High School Origin</th>
                       <th className="col-gwa" style={{ width: '5%' }}>HS GWA</th>
                       <th className="d-none d-md-table-cell col-honors" style={{ width: '8%' }}>Honors</th>
                       <th className="d-none d-md-table-cell col-income-cat" style={{ width: '8%' }}>Income Category</th>
@@ -471,6 +493,7 @@ const exportToExcel = () => {
                         </td>
                         <td data-label="Income" className="text-truncate" style={{ maxWidth: 120 }}>{student.income === -1 || student.income === null ? <Badge bg="danger">No Income Entered</Badge> : `₱${student.income.toLocaleString()}`}</td>
                         <td data-label="SHS Type" className="text-truncate" style={{ maxWidth: 130 }}>{student.SHS_type && student.SHS_type !== 'Incomplete' ? student.SHS_type : <Badge bg="danger">No SHS Type</Badge>}</td>
+                        <td data-label="SHS Origin" className="text-truncate" style={{ maxWidth: 130 }}>{student.SHS_origin && student.SHS_origin !== 'Incomplete' ? student.SHS_origin : <Badge bg="danger">No SHS Origin</Badge>}</td>
                         <td data-label="GWA" className="text-truncate" style={{ maxWidth: 80 }}>{student.GWA === -1 || student.GWA === null ? <Badge bg="danger">No GWA Entered</Badge> : student.GWA}</td>
                         <td data-label="Honors" className="d-none d-md-table-cell text-truncate" style={{ maxWidth: 140 }}><Badge bg={getHonorsBadgeVariant(student.Honors)}>{student.Honors && student.Honors !== 'Incomplete' ? student.Honors : 'No Honors'}</Badge></td>
                         <td data-label="Income Category" className="d-none d-md-table-cell text-truncate" style={{ maxWidth: 140 }}><Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>{student.IncomeCategory && student.IncomeCategory !== 'Incomplete' ? student.IncomeCategory : 'No Income Category'}</Badge></td>
@@ -555,6 +578,22 @@ const exportToExcel = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
+                    <Form.Label>SHS ORIGIN (SCHOOL)</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="ENTER SHS NAME"
+                      style={{ textTransform: "uppercase" }}
+                      value={selectedStudent.SHS_origin || ''}
+                      onChange={(e) =>
+                        setSelectedStudent({
+                          ...selectedStudent,
+                          SHS_origin: e.target.value.toUpperCase(),
+                        })
+                      }
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
                     <Form.Label>Income</Form.Label>
                     <Form.Control type="number" value={selectedStudent.income} onChange={(e) => setSelectedStudent({ ...selectedStudent, income: parseFloat(e.target.value) })} />
                   </Form.Group>
@@ -601,6 +640,7 @@ const exportToExcel = () => {
               { label: 'Area Type', value: getAreaType(viewedStudent.municipality) },
               { label: 'Income', value: viewedStudent.income === -1 || viewedStudent.income === null ? '—' : `₱${viewedStudent.income.toLocaleString()}` },
               { label: 'SHS Type', value: viewedStudent.SHS_type || '—' },
+              { label: 'SHS Origin', value: viewedStudent.SHS_origin || '—' },
               { label: 'GWA', value: viewedStudent.GWA === -1 || viewedStudent.GWA === null ? '—' : viewedStudent.GWA },
               { label: 'Honors', value: viewedStudent.Honors || '—' },
               { label: 'Income Category', value: viewedStudent.IncomeCategory || '—' },

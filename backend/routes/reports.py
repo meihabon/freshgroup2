@@ -101,17 +101,6 @@ def build_report_context(report_type, students):
             "student outreach (municipalities), and academic support initiatives (SHS type & origin)."
         )
 
-    elif report_type == "shs_origin_report":
-        title = "Senior High School Origin Report"
-        summary_data = {}
-        for s in students:
-            summary_data[s["SHS_origin"]] = summary_data.get(s["SHS_origin"], 0) + 1
-        student_headers = ["Firstname", "Lastname", "SHS Origin (School)"]
-        student_rows = [[s["firstname"], s["lastname"], s["SHS_origin"]] for s in students]
-        recommendations = (
-            "This report identifies which senior high schools contribute most to student enrollment, "
-            "helping strengthen institutional partnerships and outreach."
-        )
 
     elif report_type == "income_analysis":
         title = "Income Analysis Report"
@@ -142,12 +131,42 @@ def build_report_context(report_type, students):
 
     elif report_type == "shs_report":
         title = "Senior High School Background Report"
-        summary_data = {}
+
+        # Count by SHS Type and SHS Origin
+        shs_type_counts = {}
+        shs_origin_counts = {}
+
         for s in students:
-            summary_data[s["SHS_type"]] = summary_data.get(s["SHS_type"], 0) + 1
-        student_headers = ["Firstname", "Lastname", "SHS Type"]
-        student_rows = [[s["firstname"], s["lastname"], s["SHS_type"]] for s in students]
-        recommendations = "SHS background analysis helps identify preparation gaps among students and adjust bridging programs."
+            shs_type_counts[s["SHS_type"]] = shs_type_counts.get(s["SHS_type"], 0) + 1
+            shs_origin_counts[s["SHS_origin"]] = shs_origin_counts.get(s["SHS_origin"], 0) + 1
+
+        # Build summary with both type and origin insights
+        most_common = lambda d: max(d, key=d.get) if d else "N/A"
+        summary_data = {
+            "Most Common SHS Type": most_common(shs_type_counts),
+            "Most Common SHS Origin": most_common(shs_origin_counts),
+            "Total Unique SHS Origins": len(shs_origin_counts),
+        }
+
+        # Include both columns in report table
+        student_headers = ["Firstname", "Lastname", "SHS Type", "SHS Origin (School)"]
+        student_rows = [
+            [s["firstname"], s["lastname"], s["SHS_type"], s["SHS_origin"]]
+            for s in students
+        ]
+
+        # Add optional chart support if needed
+        show_charts = {
+            "SHS Type Distribution": shs_type_counts,
+            "SHS Origin Distribution": shs_origin_counts,
+        }
+
+        # Updated interpretation
+        recommendations = (
+            "Analyzing both SHS type and origin helps identify preparation gaps among students "
+            "and the feeder schools contributing most enrollees. This insight supports targeted "
+            "bridging programs and partnership initiatives with key senior high schools."
+        )
 
     elif report_type == "cluster_analysis":
         title = "Cluster Analysis Report"

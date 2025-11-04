@@ -242,10 +242,10 @@ const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   // --- 📄 Download Dataset Template (CSV) ---
   const handleDownloadTemplateCSV = () => {
-    const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
+    const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "SHS_origin", "GWA"]
     const rows = [
-      ["Juan", "Dela Cruz", "Male", "BSIT", "Tagudin", "15000", "Academic", "85"],
-      ["Maria", "Santos", "Female", "BSBA", "Sta. Cruz", "8000", "TVL", "90"],
+      ["Juan", "Dela Cruz", "Male", "BSIT", "Tagudin", "15000", "Private", "Sta. Cruz Institute, Inc.", "85"],
+      ["Maria", "Santos", "Female", "BSBA", "Sta. Cruz", "8000", "Public", "Tagudin National High School", "90"],
     ]
       
     const csvContent =
@@ -265,10 +265,10 @@ const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   // --- 📄 Download Dataset Template (Excel) ---
   const handleDownloadTemplateExcel = () => {
-    const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
+    const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "SHS_origin", "GWA"]
     const rows = [
-      ["Juan", "Dela Cruz", "Male", "BSIT", "TAGDIN", 15000, "Private", 85],
-      ["Maria", "Santos", "Female", "BSBA", "SANTA CRUZ", 8000, "Public", 90],
+      ["Juan", "Dela Cruz", "Male", "BSIT", "Tagudin", "15000", "Private", "Sta. Cruz Institute, Inc.", "85"],
+      ["Maria", "Santos", "Female", "BSBA", "Sta. Cruz", "8000", "Public", "Tagudin National High School", "90"],
     ]
 
     const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows])
@@ -400,7 +400,7 @@ const elbowPlot = () => {
         </div>
         <small className="text-muted">
           Use this template to prepare your dataset before uploading. Columns must include: 
-          <code> firstname, lastname, sex, program, municipality, income, SHS_type, GWA </code>.
+          <code> firstname, lastname, sex, program, municipality, income, SHS_type, SHS_ origin, GWA </code>.
         </small>
       </div>
 
@@ -649,7 +649,7 @@ const elbowPlot = () => {
                     <Form.Control type="file" accept=".csv,.xlsx" onChange={handleFileSelect} />
                       <Form.Text className="text-muted">
                         Supported formats: CSV, Excel (.xlsx). File must include: 
-                        firstname, lastname, sex, program, municipality, income, SHS_type, GWA
+                        firstname, lastname, sex, program, municipality, income, SHS_type, SHS_origin, GWA
                       </Form.Text>
                   </Form.Group>
 
