@@ -12,10 +12,12 @@ import {
   Form,
   Modal,
   Pagination,
-  Accordion
+  Accordion,
+  InputGroup,
 } from "react-bootstrap"
 import { useAuth } from "../context/AuthContext"
 import { Layers } from 'lucide-react'
+import { Search, Filter } from 'lucide-react'
 import Plot from "react-plotly.js"
 import RecordViewModal from './RecordViewModal'
 
@@ -89,6 +91,16 @@ function Clusters() {
 
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewedStudent, setViewedStudent] = useState<Student | null>(null)
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [programFilter, setProgramFilter] = useState('');
+  const [sexFilter, setSexFilter] = useState('');
+  const [municipalityFilter, setMunicipalityFilter] = useState('');
+  const [incomeFilter, setIncomeFilter] = useState('');
+  const [honorsFilter, setHonorsFilter] = useState('');
+  const [shsFilter, setShsFilter] = useState('');
+  const [schoolFilter, setSchoolFilter] = useState('');
+  const [areaTypeFilter, setAreaTypeFilter] = useState('');
 
   const pairableFeatures = ["GWA", "income", "sex", "program", "municipality", "shs_type", "shs_origin"]
 
@@ -658,6 +670,68 @@ const renderClusterSection = (
                   </Form.Select>
                 </div>
               </div>
+              {/* 🔍 Compact Search & Filter Bar */}
+              <Card className="mb-3">
+                <Card.Body>
+                  <Row className="align-items-center gy-2">
+                    <Col xs={12} md={6}>
+                      <InputGroup size="sm">
+                        <InputGroup.Text><Search size={14} /></InputGroup.Text>
+                        <Form.Control
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Search by name, program, or municipality..."
+                        />
+                      </InputGroup>
+                    </Col>
+
+                    <Col xs={6} md={3}>
+                      <Form.Select size="sm" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}>
+                        <option value="">All Programs</option>
+                        {[...new Set(data.clusters[selectedCluster].map(s => s.program))].map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+
+                    <Col xs={6} md={3}>
+                      <Form.Select size="sm" value={sexFilter} onChange={(e) => setSexFilter(e.target.value)}>
+                        <option value="">All Sexes</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                      </Form.Select>
+                    </Col>
+
+                    <Col xs={6} md={3}>
+                      <Form.Select size="sm" value={areaTypeFilter} onChange={(e) => setAreaTypeFilter(e.target.value)}>
+                        <option value="">All Areas</option>
+                        <option value="Upland">Upland</option>
+                        <option value="Lowland">Lowland</option>
+                      </Form.Select>
+                    </Col>
+
+                    <Col xs={6} md={3}>
+                      <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setProgramFilter('');
+                          setSexFilter('');
+                          setMunicipalityFilter('');
+                          setIncomeFilter('');
+                          setHonorsFilter('');
+                          setShsFilter('');
+                          setSchoolFilter('');
+                          setAreaTypeFilter('');
+                        }}
+                      >
+                        Reset Filters
+                      </Button>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
 
               <div className="table-responsive">
                 <Table striped hover responsive className="mb-0 clusters-table table-sm">
@@ -678,8 +752,36 @@ const renderClusterSection = (
                   </thead>
                   <tbody>
                     {data.clusters[selectedCluster]
+                      .filter((s) => {
+                        const matchesSearch =
+                          !searchTerm ||
+                          `${s.firstname} ${s.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (s.program ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (s.municipality ?? '').toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesProgram = !programFilter || s.program === programFilter;
+                        const matchesSex = !sexFilter || s.sex === sexFilter;
+                        const matchesMuni = !municipalityFilter || s.municipality === municipalityFilter;
+                        const matchesIncome = !incomeFilter || s.IncomeCategory === incomeFilter;
+                        const matchesHonors = !honorsFilter || s.Honors === honorsFilter;
+                        const matchesSHSType = !shsFilter || s.SHS_type === shsFilter;
+                        const matchesSHSOrigin = !schoolFilter || s.SHS_origin === schoolFilter;
+                        const matchesArea = !areaTypeFilter || getAreaType(s.municipality) === areaTypeFilter;
+
+                        return (
+                          matchesSearch &&
+                          matchesProgram &&
+                          matchesSex &&
+                          matchesMuni &&
+                          matchesIncome &&
+                          matchesHonors &&
+                          matchesSHSType &&
+                          matchesSHSOrigin &&
+                          matchesArea
+                        );
+                      })
                       .slice((currentPage - 1) * studentsPerPage, currentPage * studentsPerPage)
                       .map((s) => (
+
                         <tr key={s.id} onClick={() => { setViewedStudent(s); setShowViewModal(true); }} style={{ cursor: 'pointer' }}>
                           <td data-label="First Name">{s.firstname}</td>
                           <td data-label="Last Name">{s.lastname}</td>
