@@ -296,6 +296,36 @@ async def delete_user(user_id: int, current_user: dict = Depends(get_current_use
 
     return {"message": "User deleted successfully"}
 
+# --- Activate / Deactivate user (Admin only) ---
+@router.put("/users/{user_id}/toggle-active")
+async def toggle_user_active(user_id: int, data: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    admin = resolve_user(current_user)
+    if not admin or admin["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can change user status")
+
+    active = data.get("active")
+    if active is None:
+        raise HTTPException(status_code=400, detail="Active status is required (true/false)")
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT email, active FROM users WHERE id=%s", (user_id,))
+    target_user = cursor.fetchone()
+    if not target_user:
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=404, detail="User not found")
+
+    cursor.execute("UPDATE users SET active=%s WHERE id=%s", (active, user_id))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    status_text = "activated" if active else "deactivated"
+    log_activity(admin["id"], "Change User Status", f"Admin {status_text} user: {target_user['email']}")
+
+    return {"message": f"User {status_text} successfully"}
+
 
 # --- Get activity logs (Admin or user-specific) ---
 @router.get("/activity-logs")

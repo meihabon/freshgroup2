@@ -81,6 +81,19 @@ function UserManagement() {
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
+  
+  const handleToggleActive = async (user: UserType) => {
+  if (!window.confirm(`Are you sure you want to ${user.active ? "deactivate" : "activate"} this account?`))
+    return;
+
+  try {
+    await API.put(`users/${user.id}/toggle-active`, { active: !user.active });
+    setSuccess(`User ${user.active ? "deactivated" : "activated"} successfully`);
+    fetchUsers();
+  } catch (err: any) {
+    setError(err.response?.data?.detail || "Failed to update user status");
+  }
+};
 
   // Password strength helpers
   const getPasswordScore = (pw: string) => {
@@ -517,6 +530,13 @@ const handleResetPassword = async () => {
                         <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id); }}>
                           <Trash size={14} />
                         </Button>
+                        <Button
+                            variant={u.active ? "outline-danger" : "outline-success"}
+                            size="sm"
+                            onClick={() => handleToggleActive(u)}
+                          >
+                            {u.active ? "Deactivate" : "Activate"}
+                          </Button>
                       </td>
                     </tr>
                   ))}
