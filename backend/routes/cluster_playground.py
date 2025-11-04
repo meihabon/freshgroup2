@@ -78,7 +78,7 @@ async def cluster_playground(
     df = pd.DataFrame(students)
     # normalize canonical columns and safely encode categoricals
     df = clusters_module.normalize_dataframe_columns(df)
-    df = clusters_module.encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    df = clusters_module.encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type","shs_origin"])
 
     # filter complete rows using the shared helper
     df_complete = filter_complete_students_df(df)
@@ -120,6 +120,7 @@ async def cluster_playground(
             "municipality": row.get("municipality"),
             "income": float(row.get("income") or 0),
             "SHS_type": row.get("shs_type"),
+            "SHS_origin": row.get("shs_origin"),
             "GWA": float(row.get("gwa") or 0),
             "Honors": row.get("Honors"),
             "IncomeCategory": row.get("IncomeCategory"),
@@ -157,7 +158,7 @@ async def export_cluster_playground(
     df = pd.DataFrame(students)
     # normalize canonical columns so we reliably use 'gwa' and 'income'
     df = clusters_module.normalize_dataframe_columns(df)
-    df = clusters_module.encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    df = clusters_module.encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type", "shs_origin"])
 
     df_complete = filter_complete_students_df(df)
     if df_complete.empty:
@@ -214,8 +215,8 @@ async def export_cluster_playground(
     story.append(Spacer(1, 20))
 
     # Students table
-    table_data = [["Firstname", "Lastname", "Program", "Municipality", "Income", "Income Category", "SHS Type", "GWA", "Honors", "Cluster"]] + \
-        df_complete[["firstname", "lastname", "program", "municipality", "income", "IncomeCategory", "SHS_type", "gwa", "Honors", "Cluster"]].values.tolist()
+    table_data = [["Firstname", "Lastname", "Program", "Municipality", "Income", "Income Category", "SHS Type", "SHS_origin", "GWA", "Honors", "Cluster"]] + \
+        df_complete[["firstname", "lastname", "program", "municipality", "income", "IncomeCategory", "SHS_type", "shs_origin" "gwa", "Honors", "Cluster"]].values.tolist()
     table = Table(table_data, repeatRows=1)
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.grey),

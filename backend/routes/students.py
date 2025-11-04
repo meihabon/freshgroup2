@@ -16,6 +16,7 @@ async def get_students(
     municipality: Optional[str] = None,
     income_category: Optional[str] = None,
     shs_type: Optional[str] = None,
+    shs_origin: Optional[str] = None,
     honors: Optional[str] = None,
     search: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
@@ -52,6 +53,9 @@ async def get_students(
     if shs_type:
         query += " AND SHS_type = %s"
         params.append(shs_type)
+    if shs_origin:
+        query += " AND SHS_origin = %s"
+        params.append(shs_origin)
     if honors:
         query += " AND Honors = %s"
         params.append(honors)
@@ -92,6 +96,7 @@ async def update_student(
     program = student_data.get("program", student["program"])
     municipality = student_data.get("municipality", student["municipality"])
     shs_type = student_data.get("SHS_type", student["SHS_type"])
+    shs_origin = student_data.get("SHS_origin", student["SHS_origin"])
     gwa = student_data.get("GWA", student["GWA"])
     income = student_data.get("income", student["income"])
 
@@ -103,7 +108,7 @@ async def update_student(
     update_query = """
         UPDATE students
         SET firstname=%s, lastname=%s, sex=%s, program=%s,
-            municipality=%s, SHS_type=%s, GWA=%s, income=%s,
+            municipality=%s, SHS_type=%s, SHS_origin=%s, GWA=%s, income=%s,
             Honors=%s, IncomeCategory=%s
         WHERE id=%s
     """
@@ -111,7 +116,7 @@ async def update_student(
     try:
         cursor.execute(update_query, (
             firstname, lastname, sex, program,
-            municipality, shs_type, gwa, income,
+            municipality, shs_type, shs_origin, gwa, income,
             honors, income_category, student_id
         ))
         connection.commit()

@@ -31,6 +31,8 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
         "municipality": "municipality", "city": "municipality",
         "income": "income", "family income": "income",
         "shs_type": "shs_type", "senior high": "shs_type",
+        "shs_origin": "shs_origin", "shs origin": "shs_origin", "senior high school": "shs_origin","senior high school name": "shs_origin",
+        "school origin": "shs_origin", "shs_school": "shs_origin", "high school": "shs_origin", "school": "shs_origin",
         "gwa": "gwa", "general weighted average": "gwa",
         "firstname": "firstname", "first name": "firstname", "fname": "firstname",
         "lastname": "lastname", "last name": "lastname", "surname": "lastname", "lname": "lastname",
@@ -45,7 +47,7 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
         df["lastname"] = name_split[1] if name_split.shape[1] > 1 else ""
 
     # Ensure required columns exist
-    required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
+    required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "shs_origin" "gwa"]
     for col in required_cols:
         if col not in df.columns:
             df[col] = None
@@ -59,7 +61,8 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     df["income"] = pd.to_numeric(df["income"], errors="coerce")
 
     # Encode categoricals
-    categorical_cols = ["sex", "program", "municipality", "shs_type"]
+   categorical_cols = ["sex", "program", "municipality", "shs_type", "shs_origin"]
+
     for col in categorical_cols:
         enc_col = f"{col}_enc"
         try:
@@ -267,6 +270,7 @@ async def upload_dataset(
             program = safe_text(row.get('program'))
             municipality = safe_text(row.get('municipality'))
             shs_type = safe_text(row.get('shs_type'))
+            shs_origin = safe_text(row.get('shs_origin'))
 
             income_val = safe_num(row.get('income'))
             gwa_val = safe_num(row.get('gwa'))
@@ -275,8 +279,8 @@ async def upload_dataset(
             income_category = safe_text(row.get('IncomeCategory'))
 
             cursor.execute("""
-                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, shs_origin, gwa, Honors, IncomeCategory, dataset_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 firstname,
                 lastname,
@@ -285,6 +289,7 @@ async def upload_dataset(
                 municipality,
                 income_val,
                 shs_type,
+                shs_origin,
                 gwa_val,
                 honors,
                 income_category,

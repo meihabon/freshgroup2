@@ -11,6 +11,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Database connection failed")
     cursor = connection.cursor(dictionary=True)
 
+    # Get latest dataset
     cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
     latest_dataset = cursor.fetchone()
     if not latest_dataset:
@@ -23,17 +24,20 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
             "most_common_sex": "N/A",
             "most_common_income": "N/A",
             "most_common_shs": "N/A",
+            "most_common_school": "N/A",
             "most_common_honors": "N/A",
             "sex_distribution": {},
             "program_distribution": {},
             "municipality_distribution": {},
             "income_distribution": {},
             "shs_distribution": {},
-            "honors_distribution": {}
+            "school_distribution": {},
+            "honors_distribution": {},
         }
 
     dataset_id = latest_dataset["id"]
 
+    # --- Student counts and distributions ---
     cursor.execute("SELECT COUNT(*) as count FROM students WHERE dataset_id = %s", (dataset_id,))
     total_students = cursor.fetchone()["count"]
 
@@ -57,6 +61,11 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     shs_distribution = {row["SHS_type"]: row["count"] for row in cursor.fetchall()}
     most_common_shs = max(shs_distribution, key=shs_distribution.get) if shs_distribution else "N/A"
 
+    # ✅ NEW: SHS_ORIGIN distribution (school origin)
+    cursor.execute("SELECT SHS_origin, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY SHS_origin", (dataset_id,))
+    school_distribution = {row["SHS_origin"]: row["count"] for row in cursor.fetchall() if row["SHS_origin"]}
+    most_common_school = max(school_distribution, key=school_distribution.get) if school_distribution else "N/A"
+
     cursor.execute("SELECT Honors, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY Honors", (dataset_id,))
     honors_distribution = {row["Honors"]: row["count"] for row in cursor.fetchall()}
     most_common_honors = max(honors_distribution, key=honors_distribution.get) if honors_distribution else "N/A"
@@ -64,6 +73,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     cursor.close()
     connection.close()
 
+    # --- Return Dashboard Data ---
     return {
         "total_students": total_students,
         "most_common_program": most_common_program,
@@ -71,11 +81,13 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "most_common_sex": most_common_sex,
         "most_common_income": most_common_income,
         "most_common_shs": most_common_shs,
+        "most_common_school": most_common_school,  # ✅ added
         "most_common_honors": most_common_honors,
         "sex_distribution": sex_distribution,
         "program_distribution": program_distribution,
         "municipality_distribution": municipality_distribution,
         "income_distribution": income_distribution,
         "shs_distribution": shs_distribution,
+        "school_distribution": school_distribution,  # ✅ added
         "honors_distribution": honors_distribution,
     }

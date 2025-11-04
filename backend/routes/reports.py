@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 router = APIRouter()
 
-
 # === Utility: Fetch latest dataset of students (with clusters if available) ===
 async def get_all_students_from_db():
     connection = get_db_connection()
@@ -36,6 +35,7 @@ async def get_all_students_from_db():
                 ON s.id = sc.student_id AND sc.cluster_id = %s
             WHERE s.dataset_id = %s
         """, (cluster["id"], latest["id"]))
+
     else:
         cursor.execute("SELECT * FROM students WHERE dataset_id = %s", (latest["id"],))
 
@@ -45,7 +45,7 @@ async def get_all_students_from_db():
     return students
 
 
-# Helper: build report context (title, summary_data, headers, rows, charts, recommendations)
+# === Report Context Builder ===
 def build_report_context(report_type, students):
     summary_data, student_headers, student_rows, show_charts, recommendations = {}, [], [], False, ""
 
@@ -53,13 +53,15 @@ def build_report_context(report_type, students):
         title = "Dashboard Summary Report"
         total_students = len(students)
 
-        sex_counts, program_counts, municipality_counts, income_counts, shs_counts, honors_counts = {}, {}, {}, {}, {}, {}
+        sex_counts, program_counts, municipality_counts, income_counts, shs_counts, shs_origin_counts, honors_counts = {}, {}, {}, {}, {}, {}, {}
+
         for s in students:
             sex_counts[s["sex"]] = sex_counts.get(s["sex"], 0) + 1
             program_counts[s["program"]] = program_counts.get(s["program"], 0) + 1
             municipality_counts[s["municipality"]] = municipality_counts.get(s["municipality"], 0) + 1
             income_counts[s["IncomeCategory"]] = income_counts.get(s["IncomeCategory"], 0) + 1
             shs_counts[s["SHS_type"]] = shs_counts.get(s["SHS_type"], 0) + 1
+            shs_origin_counts[s["SHS_origin"]] = shs_origin_counts.get(s["SHS_origin"], 0) + 1
             honors_counts[s["Honors"]] = honors_counts.get(s["Honors"], 0) + 1
 
         most_common = lambda d: max(d, key=d.get) if d else "N/A"
@@ -70,12 +72,19 @@ def build_report_context(report_type, students):
             "Most Common Municipality": most_common(municipality_counts),
             "Most Common Income Category": most_common(income_counts),
             "Most Common SHS Type": most_common(shs_counts),
+            "Most Common SHS Origin (School)": most_common(shs_origin_counts),
             "Most Common Honors": most_common(honors_counts),
         }
 
-        student_headers = ["Firstname", "Lastname", "Sex", "Program", "Municipality", "Income", "SHS Type", "GWA", "Honors", "IncomeCategory"]
+        student_headers = [
+            "Firstname", "Lastname", "Sex", "Program", "Municipality",
+            "Income", "SHS Type", "SHS Origin", "GWA", "Honors", "IncomeCategory"
+        ]
         student_rows = [
-            [s["firstname"], s["lastname"], s["sex"], s["program"], s["municipality"], str(s["income"]), s["SHS_type"], str(s["GWA"]), s["Honors"], s["IncomeCategory"]]
+            [
+                s["firstname"], s["lastname"], s["sex"], s["program"], s["municipality"],
+                str(s["income"]), s["SHS_type"], s["SHS_origin"], str(s["GWA"]), s["Honors"], s["IncomeCategory"]
+            ]
             for s in students
         ]
         show_charts = {
@@ -84,9 +93,25 @@ def build_report_context(report_type, students):
             "Municipality Distribution": municipality_counts,
             "Income Distribution": income_counts,
             "SHS Type Distribution": shs_counts,
+            "SHS Origin Distribution": shs_origin_counts,
             "Honors Distribution": honors_counts,
         }
-        recommendations = "These insights help guide scholarship allocation (income), curriculum planning (programs), and student support initiatives (sex, SHS type, municipality)."
+        recommendations = (
+            "These insights help guide scholarship allocation (income), curriculum planning (programs), "
+            "student outreach (municipalities), and academic support initiatives (SHS type & origin)."
+        )
+
+    elif report_type == "shs_origin_report":
+        title = "Senior High School Origin Report"
+        summary_data = {}
+        for s in students:
+            summary_data[s["SHS_origin"]] = summary_data.get(s["SHS_origin"], 0) + 1
+        student_headers = ["Firstname", "Lastname", "SHS Origin (School)"]
+        student_rows = [[s["firstname"], s["lastname"], s["SHS_origin"]] for s in students]
+        recommendations = (
+            "This report identifies which senior high schools contribute most to student enrollment, "
+            "helping strengthen institutional partnerships and outreach."
+        )
 
     elif report_type == "income_analysis":
         title = "Income Analysis Report"
@@ -137,7 +162,7 @@ def build_report_context(report_type, students):
         student_headers = ["Cluster", "Firstname", "Lastname", "GWA", "Income"]
         sorted_students = sorted(students, key=lambda s: (s.get("cluster_number") if s.get("cluster_number") is not None else 999, s["GWA"]))
         student_rows = [
-            [s["cluster_number"] if s.get("cluster_number") is not None else "N/A", s["firstname"], s["lastname"], str(s["GWA"]), str(s["income"]) ]
+            [s["cluster_number"] if s.get("cluster_number") is not None else "N/A", s["firstname"], s["lastname"], str(s["GWA"]), str(s["income"])]
             for s in sorted_students
         ]
         recommendations = "Cluster analysis groups students by performance and financial background (GWA & income). This helps design targeted academic support and financial aid strategies."
@@ -146,6 +171,7 @@ def build_report_context(report_type, students):
         raise HTTPException(status_code=400, detail="Invalid report type")
 
     return title, summary_data, student_headers, student_rows, show_charts, recommendations
+
 
 
 # === Reports Endpoint ===

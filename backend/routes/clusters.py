@@ -26,6 +26,7 @@ _CANONICAL_MAP = {
     "municipality": ["municipality", "city", "town"],
     "income": ["income", "family income", "family_income", "household_income"],
     "shs_type": ["shs_type", "shs type", "senior high", "shs"],
+    "shs_origin": ["shs_origin", "shs origin", "high school origin", "school_origin", "shs_school"],
     "gwa": ["gwa", "general weighted average", "general_weighted_average", "general_weighted_average_gwa"],
     "name": ["name", "fullname", "student name", "student_name"],
 }
@@ -118,7 +119,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     # Build dataframe and normalize/encode like pairwise
     df = pd.DataFrame(students)
     df = normalize_dataframe_columns(df)
-    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type", "shs_origin"])
 
     # Only cluster on complete rows
     df_complete = filter_complete_students_df(df)
@@ -147,7 +148,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         "colors": [int(r.get("Cluster", 0) or 0) for _, r in df_complete.iterrows()],
         "text": [
             f"{r.get('firstname','')} {r.get('lastname','')}<br>Program: {r.get('program','-')}<br>Municipality: {r.get('municipality','-')}<br>"
-            f"Income: {r.get('incomecategory','-')}<br>Honors: {r.get('honors','-')}<br>SHS: {r.get('shs_type','-')}"
+            f"Income: {r.get('incomecategory','-')}<br>Honors: {r.get('honors','-')}<br>SHS: {r.get('shs_type','-')}<br>SHS Origin: {r.get('shs_origin','-')}"
             for _, r in df_complete.iterrows()
         ]
     }
@@ -203,12 +204,12 @@ async def recluster(
 
     df = pd.DataFrame(students)
     df = normalize_dataframe_columns(df)
-    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type", "shs_origin"])
 
     # Only cluster on complete rows
     df_complete = filter_complete_students_df(df)
 
-    canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
+    canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type", "shs_origin"]
     feature_cols = _pick_feature_columns(df, canonical_features)
     if not feature_cols:
         cursor.close(); connection.close()
@@ -284,7 +285,7 @@ async def pairwise_clusters(
     x_canon = _standard_col_name(x)
     y_canon = _standard_col_name(y)
 
-    allowed = {"gwa", "income", "sex", "program", "municipality", "shs_type"}
+    allowed = {"gwa", "income", "sex", "program", "municipality", "shs_type", "shs_origin"}
     if x_canon not in allowed or y_canon not in allowed:
         raise HTTPException(status_code=400, detail=f"Allowed features: {sorted(list(allowed))}")
 
@@ -311,13 +312,13 @@ async def pairwise_clusters(
 
     df = pd.DataFrame(students)
     df = normalize_dataframe_columns(df)
-    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type", "shs_origin"])
 
     # Only use complete students for pairwise clustering
     df_complete = filter_complete_students_df(df)
 
     def actual_col(canon: str) -> str:
-        if canon in {"sex", "program", "municipality", "shs_type"}:
+        if canon in {"sex", "program", "municipality", "shs_type", "shs_origin"}:
             return f"{canon}_enc" if f"{canon}_enc" in df.columns else canon
         return canon
 
@@ -352,6 +353,7 @@ async def pairwise_clusters(
             "municipality": row.get("municipality"),
             "income": float(row.get("income") or 0),
             "SHS_type": row.get("shs_type"),
+            "SHS_origin": row.get("shs_origin"),
             "GWA": float(row.get("gwa") or 0),
             "Honors": row.get("Honors"),
             "IncomeCategory": row.get("IncomeCategory"),
@@ -369,6 +371,6 @@ async def pairwise_clusters(
         "x_name": x_canon,
         "y_name": y_canon,
         "k": k,
-        "x_categories": df[x_canon].unique().tolist() if x_canon in {"sex","program","municipality","shs_type"} else None,
-        "y_categories": df[y_canon].unique().tolist() if y_canon in {"sex","program","municipality","shs_type"} else None,
+        "x_categories": df[x_canon].unique().tolist() if x_canon in {"sex","program","municipality","shs_type", "shs_origin"} else None,
+        "y_categories": df[y_canon].unique().tolist() if y_canon in {"sex","program","municipality","shs_type", "shs_origin"} else None,
     }
