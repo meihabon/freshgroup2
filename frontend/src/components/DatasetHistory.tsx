@@ -261,10 +261,26 @@ const activateDataset = async (id: number) => {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString()
-  }
+const formatDate = (dateStr: string) => {
+  try {
+    const date = new Date(dateStr)
+    // Shift UTC → PST manually (UTC+8)
+    const pstTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
 
+    return pstTime.toLocaleString('en-PH', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    })
+  } catch {
+    return dateStr
+  }
+}
   // --- 📄 Download Dataset Template (CSV) ---
   const handleDownloadTemplateCSV = () => {
     const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "SHS_origin", "GWA"]

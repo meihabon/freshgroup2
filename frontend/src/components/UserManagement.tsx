@@ -272,7 +272,7 @@ const handleResetPassword = async () => {
       u.profile?.department || "",
       u.profile?.position || "",   
       u.active ? "Active" : "Inactive",
-      new Date(u.created_at).toLocaleString(),
+      formatDate(u.created_at),
     ])
     const csvContent = [header, ...rows].map((row) => row.join(",")).join("\n")
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
@@ -316,7 +316,26 @@ const handleResetPassword = async () => {
 
     doc.save("users.pdf")
   }
+const formatDate = (dateStr: string) => {
+  try {
+    const date = new Date(dateStr)
+    // Convert explicitly to PST (UTC+8)
+    const pstTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
 
+    return pstTime.toLocaleString('en-PH', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    })
+  } catch {
+    return dateStr
+  }
+}
   const handleDownloadCSV = () => {
     if (users.length === 0) {
       setError("No users available to download")
@@ -331,7 +350,7 @@ const handleResetPassword = async () => {
       u.profile?.department || "",
       u.profile?.position || "",
       u.active ? "Active" : "Inactive",
-      new Date(u.created_at).toLocaleString(),
+      formatDate(u.created_at),
     ])
     const csvContent = [header, ...rows].map((row) => row.join(",")).join("\n")
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
@@ -359,7 +378,7 @@ const handleResetPassword = async () => {
       Department: u.profile?.department || "",
       Position: u.profile?.position || "",   // ✅ added
       Status: u.active ? "Active" : "Inactive",
-      Created: new Date(u.created_at).toLocaleString(),
+      Created: formatDate(u.created_at),
     }))
     const worksheet = XLSX.utils.json_to_sheet(worksheetData)
     const workbook = XLSX.utils.book_new()
@@ -520,7 +539,7 @@ const handleResetPassword = async () => {
                           {u.active ? "Active" : "Inactive"}
                         </Badge>
                       </td>
-                      <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td data-label="Created">{formatDate(u.created_at)}</td>
                       <td data-label="Actions" className="text-nowrap">
                         <div className="d-flex gap-2 justify-content-center align-items-center">
                           {/* ✏️ Edit */}
@@ -648,7 +667,7 @@ const handleResetPassword = async () => {
           { label: 'Department', value: viewedUser.profile?.department || '—' },
           { label: 'Position', value: viewedUser.profile?.position || '—' },
           { label: 'Status', value: viewedUser.active ? 'Active' : 'Inactive' },
-          { label: 'Created', value: new Date(viewedUser.created_at).toLocaleString() },
+          { label: 'Created', value: formatDate(viewedUser.created_at) },
         ] : []}
       />
 
