@@ -46,12 +46,14 @@ function ActivityLogs() {
     fetchLogs()
   }, [API])
 
-// ✅ Format date & time (PST)
+// ✅ Force convert to Philippine Standard Time (UTC+8)
 const formatDate = (dateStr: string) => {
   try {
     const date = new Date(dateStr)
-    // Convert using PH locale and timezone explicitly
-    return date.toLocaleString('en-PH', {
+    // Convert to milliseconds + UTC+8 offset (8 hours = 28800000 ms)
+    const pstTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+
+    return pstTime.toLocaleString('en-PH', {
       timeZone: 'Asia/Manila',
       year: 'numeric',
       month: 'short',
