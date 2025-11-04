@@ -97,7 +97,8 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         SELECT d.id as dataset_id, c.id as cluster_id, c.k, c.centroids 
         FROM datasets d 
         LEFT JOIN clusters c ON d.id = c.dataset_id 
-        ORDER BY d.upload_date DESC LIMIT 1
+        WHERE d.is_active = TRUE 
+        LIMIT 1
     """)
     cluster_info = cursor.fetchone()
 
@@ -185,7 +186,7 @@ async def recluster(
         raise HTTPException(status_code=500, detail="Database connection failed")
     cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
+    cursor.execute("SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1")
     latest = cursor.fetchone()
     if not latest:
         cursor.close(); connection.close()
@@ -294,7 +295,7 @@ async def pairwise_clusters(
         raise HTTPException(status_code=500, detail="Database connection failed")
     cur = conn.cursor(dictionary=True)
 
-    cur.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
+    cur.execute("SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1")
     latest = cur.fetchone()
     if not latest:
         cur.close(); conn.close()
