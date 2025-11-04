@@ -31,8 +31,10 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
         "municipality": "municipality", "city": "municipality",
         "income": "income", "family income": "income",
         "shs_type": "shs_type", "senior high": "shs_type",
-        "shs_origin": "shs_origin", "shs origin": "shs_origin", "senior high school": "shs_origin","senior high school name": "shs_origin",
-        "school origin": "shs_origin", "shs_school": "shs_origin", "high school": "shs_origin", "school": "shs_origin",
+        "shs_origin": "shs_origin", "shs origin": "shs_origin",
+        "senior high school": "shs_origin", "senior high school name": "shs_origin",
+        "school origin": "shs_origin", "shs_school": "shs_origin",
+        "high school": "shs_origin", "school": "shs_origin",
         "gwa": "gwa", "general weighted average": "gwa",
         "firstname": "firstname", "first name": "firstname", "fname": "firstname",
         "lastname": "lastname", "last name": "lastname", "surname": "lastname", "lname": "lastname",
@@ -46,8 +48,11 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
         df["firstname"] = name_split[0]
         df["lastname"] = name_split[1] if name_split.shape[1] > 1 else ""
 
-    # Ensure required columns exist
-    required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "shs_origin" "gwa"]
+    # ✅ Ensure required columns exist (added missing comma before gwa)
+    required_cols = [
+        "firstname", "lastname", "sex", "program", "municipality",
+        "income", "shs_type", "shs_origin", "gwa"
+    ]
     for col in required_cols:
         if col not in df.columns:
             df[col] = None
@@ -60,8 +65,8 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     df["gwa"] = pd.to_numeric(df["gwa"], errors="coerce")
     df["income"] = pd.to_numeric(df["income"], errors="coerce")
 
-    # Encode categoricals
-   categorical_cols = ["sex", "program", "municipality", "shs_type", "shs_origin"]
+    # ✅ Fixed indentation here
+    categorical_cols = ["sex", "program", "municipality", "shs_type", "shs_origin"]
 
     for col in categorical_cols:
         enc_col = f"{col}_enc"
@@ -71,14 +76,14 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
             df[enc_col] = le.fit_transform(df[col].astype(str))
         except Exception:
             uniques = {
-                v: i
-                for i, v in enumerate(
+                v: i for i, v in enumerate(
                     df[col].fillna("Unknown").replace("", "Unknown").astype(str).unique()
                 )
             }
             df[enc_col] = df[col].astype(str).map(uniques)
 
     return df
+
 
 # --- Elbow Helper Functions ---
 def compute_wcss_for_range(X_scaled, k_min=2, k_max=10) -> List[float]:
