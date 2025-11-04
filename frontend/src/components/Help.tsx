@@ -1,5 +1,5 @@
-import React from 'react'
-import { Container, Accordion, Badge, Button } from 'react-bootstrap'
+import React, { useRef } from 'react'
+import { Container, Accordion, Button } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 import {
   BarChart,
@@ -10,14 +10,123 @@ import {
   Layers,
   Download,
 } from 'lucide-react'
+import jsPDF from 'jspdf'
 
 const Help: React.FC = () => {
   const { user } = useAuth()
   const isAdmin = user?.role === 'Admin'
 
-  const handleDownloadPDF = () => {
-    window.open('/reports/help_manual?format=pdf', '_blank')
+  // 🧾 Generate a text-based PDF (not screenshot)
+  const handleDownloadPDF = async () => {
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    let y = 20
+    const margin = 15
+    const lineHeight = 7
+
+    const addTitle = (text: string) => {
+      pdf.setFont('helvetica', 'bold')
+      pdf.setFontSize(16)
+      pdf.text(text, 105, y, { align: 'center' })
+      y += 10
+    }
+
+    const addSection = (title: string, content: string[]) => {
+      pdf.setFont('helvetica', 'bold')
+      pdf.setFontSize(13)
+      pdf.text(title, margin, y)
+      y += 7
+      pdf.setFont('helvetica', 'normal')
+      pdf.setFontSize(11)
+      content.forEach((line) => {
+        const split = pdf.splitTextToSize(line, 180)
+        if (y + split.length * lineHeight > 280) {
+          pdf.addPage()
+          y = 20
+        }
+        pdf.text(split, margin, y)
+        y += split.length * lineHeight
+      })
+      y += 5
+    }
+
+    // --- Cover Page ---
+    addTitle('STUDENT PROFILING & CLUSTERING SYSTEM')
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(12)
+    pdf.text('System Help & User Guide', 105, y, { align: 'center' })
+    y += 10
+    pdf.text(
+      `Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+      105,
+      y,
+      { align: 'center' }
+    )
+    pdf.addPage()
+    y = 20
+
+    // --- Actual Text Content ---
+    addSection('Dashboard Walkthrough', [
+      'The Dashboard acts as your command center. It summarizes student performance, demographics, and key trends in one glance.',
+      'It includes overview metrics, demographic charts, and interactive filters that update in real time. Each summary card is clickable to show detailed breakdowns.',
+      'Tip: Use the Dashboard as your daily starting point for a quick overview of student data.'
+    ])
+
+    addSection('Students Walkthrough', [
+      'The Students page is a searchable and filterable list of all student profiles.',
+      'You can search by name, program, or municipality and apply filters for Program, Sex, Municipality, Income Category, Honors, SHS Type, and SHS Origin (School).',
+      'Badges such as "With Honors" or "Low Income" help identify key student groups at a glance.',
+      'Admins can edit individual profiles and export filtered data as CSV or Excel files.',
+      'Tip: Combine filters to target specific groups, like low-income honors students for scholarship opportunities.'
+    ])
+
+    addSection('Clusters Walkthrough', [
+      'The Clusters section groups students using K-Means clustering based on their data patterns.',
+      'Modes include Official Clusters for reference, Playground Mode for testing, and Pairwise Mode for comparing two attributes (e.g., GWA vs Income).',
+      'Each cluster has summaries showing average GWA, income, dominant program, or municipality.',
+      'You can also search or filter inside clusters and export data as CSV or PDF.',
+      'Tip: Clusters reveal trends among at-risk or high-performing students that aren’t visible in raw data.'
+    ])
+
+    addSection('Reports Walkthrough', [
+      'The Reports section transforms student data into charts and summaries for reports and presentations.',
+      'Available types include Dashboard Summary, Income, Honors, Municipality, SHS Background, and Cluster Analysis.',
+      'Reports can be previewed and exported as PDF (for presentations) or CSV (for data reviews).',
+      'Some reports include auto-generated recommendations based on analyzed data.',
+      'Tip: Use reports as evidence for accreditation, funding, and program evaluations.'
+    ])
+
+    if (isAdmin) {
+      addSection('Dataset History (Admin Only)', [
+        'This section maintains integrity and version control of uploaded datasets.',
+        'Admins can review dataset names, uploader, upload date, and record count, and see which clusters or reports were generated from each dataset.',
+        'Archived datasets can be restored or reused without re-uploading to ensure consistent comparisons across reports.',
+        'Tip: Reusing archived datasets ensures version consistency and saves time.'
+      ])
+
+      addSection('User Management (Admin Only)', [
+        'Admins manage user accounts, roles, and access privileges in this section.',
+        'Admins can add or edit users, reset passwords, assign roles (Admin or Viewer), deactivate inactive accounts, and export user data for audits.',
+        'Deactivated users remain in the system but lose login access until reactivated.',
+        'Tip: Deactivate users instead of deleting them to preserve history and data accountability.'
+      ])
+    }
+
+    addSection('Additional Help & Support', [
+      'If pages fail to load, refresh the browser or check your internet connection.',
+      'If no results show, clear filters or confirm that a dataset is uploaded.',
+      'For login or access issues, contact your administrator.',
+      'For technical errors, capture a screenshot and report it to IT.',
+      'Dataset uploads must follow the official CSV format.'
+    ])
+
+    pdf.setFont('helvetica', 'italic')
+    pdf.setFontSize(10)
+    pdf.text('End of User Manual — ISPSC SPCS © 2025', 105, 285, { align: 'center' })
+
+    // ✅ Save the PDF
+    pdf.save('SPCS_User_Manual.pdf')
   }
+
 
   return (
     <Container className="my-5">
