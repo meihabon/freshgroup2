@@ -225,13 +225,26 @@ const activateDataset = async (id: number) => {
   if (!window.confirm("Make this dataset active again? This will replace the current active dataset.")) return;
 
   try {
+    // 🔹 Activate dataset in backend
     await API.post(`/datasets/${id}/activate`);
     setSuccess("Dataset reactivated successfully!");
-    fetchDatasets();
+
+    // 🔹 Instantly reflect the change in the UI (optional but smoother)
+    setDatasets(prev =>
+      prev.map(d =>
+        d.id === id
+          ? { ...d, is_active: true } // newly activated dataset
+          : { ...d, is_active: false } // others become archived
+      )
+    );
+
+    // 🔹 Ensure the latest data is reloaded from backend
+    await fetchDatasets();
   } catch (error: any) {
     setError(error.response?.data?.detail || "Failed to reactivate dataset");
   }
 };
+
 
 
   const deleteDataset = async (id: number) => {
@@ -518,11 +531,9 @@ const elbowPlot = () => {
                         <Badge bg="success">{dataset.cluster_count || 'N/A'}</Badge>
                       </td>
                       <td data-label="Status">
-                        {(datasets.indexOf(dataset) === 0) ? (
-                          <Badge bg="primary">Active</Badge>
-                        ) : (
-                          <Badge bg="secondary">Archived</Badge>
-                        )}
+                        <Badge bg={dataset.is_active ? "success" : "secondary"}>
+                          {dataset.is_active ? "Active" : "Archived"}
+                        </Badge>
                       </td>
                       <td data-label="Actions">
                         <div className="d-flex gap-2 justify-content-center align-items-center">

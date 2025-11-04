@@ -22,7 +22,7 @@ def fetch_students():
     if not connection:
         raise HTTPException(status_code=500, detail="Database connection failed")
     cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
+    cursor.execute("SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1")  # ✅ changed
     latest = cursor.fetchone()
     if not latest:
         return []
@@ -54,7 +54,7 @@ async def cluster_playground(
     cursor = connection.cursor(dictionary=True)
 
     # Get latest dataset
-    cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
+    cursor.execute("SELECT id FROM datasets WHERE is_active = TRUE LIMIT 1")
     dataset = cursor.fetchone()
     if not dataset:
         cursor.close()
