@@ -1,36 +1,43 @@
-// =============================
-// File: Help.tsx
-// =============================
 import React from 'react'
-import { Container, Accordion, Badge } from 'react-bootstrap'
+import { Container, Accordion, Badge, Button } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
-import { 
-  BarChart, 
-  Users, 
-  Database, 
-  FileText, 
-  HelpCircle, 
-  Layers 
+import {
+  BarChart,
+  Users,
+  Database,
+  FileText,
+  HelpCircle,
+  Layers,
+  Download,
 } from 'lucide-react'
 
 const Help: React.FC = () => {
   const { user } = useAuth()
   const isAdmin = user?.role === 'Admin'
 
+  const handleDownloadPDF = () => {
+    window.open('/reports/help_manual?format=pdf', '_blank')
+  }
+
   return (
     <Container className="my-5">
       {/* PAGE TITLE */}
-      <h2 className="mb-4 fw-bold">System Help & User Guide</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="fw-bold mb-0">System Help & User Guide</h2>
+        <Button variant="outline-danger" onClick={handleDownloadPDF}>
+          <Download size={16} className="me-1" />
+          Download PDF Manual
+        </Button>
+      </div>
 
       {/* INTRODUCTION */}
       <p className="text-muted">
-        Welcome to the <b>Student Profiling & Clustering System</b>. 
-        This platform was built to help ISPSC efficiently manage student data, 
-        create meaningful clusters, and generate actionable insights.
+        Welcome to the <b>Student Profiling & Clustering System</b>. This platform helps ISPSC efficiently
+        manage student data, create meaningful clusters, and generate actionable insights.
       </p>
       <p className="text-muted">
-        In this guide, we will walk you through each feature of the system, 
-        step by step, so you can maximize its potential in your work.
+        This guide walks you through each module, providing practical instructions and tips. You can also
+        download it as a <b>PDF manual</b> using the button above.
       </p>
 
       {/* ACCORDION START */}
@@ -44,46 +51,17 @@ const Help: React.FC = () => {
           </Accordion.Header>
           <Accordion.Body>
             <p>
-              The <b>Dashboard</b> acts as your <i>command center</i>.  
-              It summarizes student performance, demographics, 
-              and overall trends in one glance.
+              The <b>Dashboard</b> acts as your <i>command center</i>, summarizing student performance,
+              demographics, and overall trends at a glance.
             </p>
             <ol>
-              <li>
-                <b>Overview Metrics:</b>  
-                At the very top, quick stats show the total number of students 
-                and summaries of key attributes like GWA, sex ratio, 
-                and program distribution.
-              </li>
-              <li>
-                <b>Demographic Breakdowns:</b>  
-                Interactive charts illustrate distributions across sex, program, 
-                municipality, income category, and SHS background.
-              </li>
-              <li>
-                <b>Most Common Values:</b>  
-                Quickly identify which program has the largest enrollment, 
-                which municipality contributes the most students, 
-                or the most common income category.
-              </li>
-              <li>
-                <b>Interactive Filters:</b>  
-                Narrow down results instantly using filters 
-                (e.g., filter by program or sex).  
-                Charts and numbers update live as you adjust filters.
-              </li>
-              <li>
-                <b>Clickable Cards:</b>  
-                Each summary card (e.g., "Total Students") 
-                is clickable.  
-                Click to explore detailed lists, graphs, or historical trends.
-              </li>
+              <li><b>Overview Metrics:</b> Quick stats show totals and averages like GWA, sex ratio, and program distribution.</li>
+              <li><b>Demographic Charts:</b> Interactive visualizations by program, municipality, income category, and SHS background.</li>
+              <li><b>Most Common Values:</b> Instantly spot dominant programs or most represented municipalities.</li>
+              <li><b>Filters:</b> Adjust filters live; charts and counts update instantly.</li>
+              <li><b>Clickable Cards:</b> Click summary boxes to drill deeper into details.</li>
             </ol>
-            <p className="text-muted">
-              <b>Tip:</b>  
-              Use the Dashboard as your starting point each session.  
-              It gives you a quick health check of the entire student population.
-            </p>
+            <p className="text-muted"><b>Tip:</b> Use the Dashboard as your daily starting point for insights.</p>
           </Accordion.Body>
         </Accordion.Item>
 
@@ -95,51 +73,17 @@ const Help: React.FC = () => {
           </Accordion.Header>
           <Accordion.Body>
             <p>
-              The <b>Students</b> section is a searchable, filterable student database.  
-              Here you can browse profiles in detail and export records if needed.
-            </p>
-            <p>
-              <Badge bg="secondary" className="me-2">i</Badge>
-              This is an example badge used in the Students walkthrough.
+              The <b>Students</b> page is a searchable, filterable list of all student records. You can browse, edit, and export profiles.
             </p>
             <ol>
-              <li>
-                <b>Paginated List:</b>  
-                Students are displayed 20 per page.  
-                Use pagination controls at the bottom to navigate large cohorts.
-              </li>
-              <li>
-                <b>Search Bar:</b>  
-                Search students by typing full or partial names.  
-                Results appear instantly.
-              </li>
-              <li>
-                <b>Filters:</b>  
-                Filter students by program, municipality, sex, income category, 
-                SHS background, or honors status.  
-                You can combine multiple filters for precision.
-              </li>
-              <li>
-                <b>Profile Badges:</b>  
-                Students have badges like “With Honors” or “Low Income” 
-                for quick identification of important attributes.
-              </li>
-              <li>
-                <b>Profile Details:</b>  
-                Clicking a student’s name opens a modal window 
-                with detailed information including demographics, GWA, 
-                and other profile fields.
-              </li>
-              <li>
-                <b>Export Data:</b>  
-                Download student data as CSV for offline analysis or reporting.  
-              </li>
+              <li><b>Search Bar:</b> Instantly search by name, program, or municipality.</li>
+              <li><b>Filters:</b> Filter by <b>Program</b>, <b>Sex</b>, <b>Municipality</b>, <b>Income Category</b>, <b>Honors</b>, <b>SHS Type</b>, and now also by <b>SHS Origin (School)</b>.</li>
+              <li><b>Badges:</b> Quick visual indicators like “With Honors” or “Low-Income”.</li>
+              <li><b>Profile View:</b> Click a row to view complete details.</li>
+              <li><b>Editing:</b> Admins can update individual student records through the Edit button.</li>
+              <li><b>Export:</b> Download filtered results as CSV or Excel for analysis or reporting.</li>
             </ol>
-            <p className="text-muted">
-              <b>Tip:</b>  
-              Use a combination of filters and badges to find priority groups 
-              (e.g., low-income honors students) for scholarships or interventions.
-            </p>
+            <p className="text-muted"><b>Tip:</b> Combine filters to find specific student groups for targeted support or scholarships.</p>
           </Accordion.Body>
         </Accordion.Item>
 
@@ -151,49 +95,18 @@ const Help: React.FC = () => {
           </Accordion.Header>
           <Accordion.Body>
             <p>
-              The <b>Clusters</b> section groups students using 
-              <b> k-means clustering </b>.  
-              This technique detects patterns not immediately obvious 
-              from raw data.
+              The <b>Clusters</b> section uses <b>k-means clustering</b> to automatically group students by patterns in their data.
             </p>
             <ol>
-              <li>
-                <b>Official Clusters:</b>  
-                Managed by Admins, these clusters are the reference sets 
-                for official reports and decision-making.
-              </li>
-              <li>
-                <b>Playground Mode:</b>  
-                Experiment with different numbers of clusters (<b>k</b>).  
-                Test “what-if” scenarios without affecting official clusters.
-              </li>
-              <li>
-                <b>Pairwise Clusters:</b>  
-                Compare two attributes (e.g., GWA vs Income).  
-                Scatter plots highlight correlations and groupings.
-              </li>
-              <li>
-                <b>Scatter Plots:</b>  
-                Each student is a point.  
-                Clusters are color-coded, and centroids are marked (C0, C1, etc.).  
-                Hover to see student-specific data.
-              </li>
-              <li>
-                <b>Cluster Summaries:</b>  
-                Each cluster has aggregated insights like average GWA, 
-                dominant program, or municipality trends.
-              </li>
-              <li>
-                <b>Export:</b>  
-                Clusters can be exported as PDF reports for presentations 
-                or CSVs for deeper offline analysis.
-              </li>
+              <li><b>Official Clusters:</b> Managed by Admins for official reference and reporting.</li>
+              <li><b>Playground Mode:</b> Try custom numbers of clusters (<b>k</b>) to explore alternative groupings.</li>
+              <li><b>Pairwise Mode:</b> Compare any two attributes (e.g., GWA vs Income or Program vs Municipality).</li>
+              <li><b>Scatter Plots:</b> Interactive visuals show each student as a colored point, with centroids marked as C0, C1, etc.</li>
+              <li><b>Cluster Summaries:</b> Expand each cluster to see average GWA, income, and dominant traits.</li>
+              <li><b>Search & Filters:</b> Inside each cluster, you can search or filter students just like in the Students page.</li>
+              <li><b>Exports:</b> Download detailed cluster reports as PDF or CSV.</li>
             </ol>
-            <p className="text-muted">
-              <b>Tip:</b>  
-              Clusters help identify at-risk groups, 
-              strong-performing cohorts, and hidden patterns across demographics.
-            </p>
+            <p className="text-muted"><b>Tip:</b> Use clustering insights to identify at-risk or high-performing student groups.</p>
           </Accordion.Body>
         </Accordion.Item>
 
@@ -205,43 +118,19 @@ const Help: React.FC = () => {
           </Accordion.Header>
           <Accordion.Body>
             <p>
-              The <b>Reports</b> section converts raw student data 
-              into polished summaries.  
-              These are ideal for board meetings, accreditation, 
-              or funding proposals.
+              The <b>Reports</b> section turns your data into ready-to-share visual summaries for decision-making.
             </p>
             <ol>
-              <li>
-                <b>Select Report Type:</b>  
-                Options include Dashboard Summary, Income Analysis, 
-                Honors Analysis, Municipality Breakdown, 
-                SHS Background, or Cluster Analysis.
-              </li>
-              <li>
-                <b>Preview Data:</b>  
-                Before exporting, preview charts and tables.  
-                Apply filters for focused analysis.
-              </li>
-              <li>
-                <b>Export Options:</b>  
-                Download polished reports as PDF (for stakeholders) 
-                or CSV (for technical analysis).
-              </li>
-              <li>
-                <b>Recommendations:</b>  
-                Some reports include auto-generated recommendations 
-                to guide decision-making.
-              </li>
+              <li><b>Report Types:</b> Includes Dashboard Summary, Income, Honors, Municipality, SHS Background, and Cluster Analysis.</li>
+              <li><b>Preview:</b> View charts and tables before downloading.</li>
+              <li><b>Export Options:</b> Download as PDF (for presentations) or CSV (for data review).</li>
+              <li><b>Recommendations:</b> Auto-generated insights guide administrative decisions.</li>
             </ol>
-            <p className="text-muted">
-              <b>Tip:</b>  
-              Use reports to back up proposals with hard evidence.  
-              They translate raw data into simple, persuasive visuals.
-            </p>
+            <p className="text-muted"><b>Tip:</b> Reports are ideal for accreditation, board meetings, or funding proposals.</p>
           </Accordion.Body>
         </Accordion.Item>
 
-        {/* DATASET HISTORY (ADMIN ONLY) */}
+        {/* DATASET HISTORY */}
         {isAdmin && (
           <Accordion.Item eventKey="4">
             <Accordion.Header>
@@ -250,36 +139,20 @@ const Help: React.FC = () => {
             </Accordion.Header>
             <Accordion.Body>
               <p>
-                <b>Dataset History</b> is only available for Admins.  
-                This section ensures data accuracy and version control.
+                The <b>Dataset History</b> section maintains data integrity and version control for uploaded student files.
               </p>
               <ol>
-                <li>
-                  <b>View Details:</b>  
-                  Review file name, uploader identity, upload date, 
-                  and the number of records included.
-                </li>
-                <li>
-                  <b>Track Outputs:</b>  
-                  See which clusters and reports were generated 
-                  from each dataset.
-                </li>
-                <li>
-                  <b>Replace or Delete:</b>  
-                  Update outdated datasets or remove invalid uploads.  
-                  This maintains system integrity.
-                </li>
+                <li><b>View Details:</b> Review dataset name, uploader, upload date, and record count.</li>
+                <li><b>Track Outputs:</b> See which clusters or reports were generated from each dataset.</li>
+                <li><b>Reuse Archived Datasets:</b> Admins can <b>restore or reuse</b> archived datasets when needed instead of re-uploading new ones.</li>
+                <li><b>Replace or Delete:</b> Update outdated datasets or remove invalid uploads to maintain clean data.</li>
               </ol>
-              <p className="text-muted">
-                <b>Tip:</b>  
-                Keep datasets up-to-date to avoid basing analysis 
-                on outdated information.
-              </p>
+              <p className="text-muted"><b>Tip:</b> Reusing archived datasets saves time and ensures consistent data comparisons across reports.</p>
             </Accordion.Body>
           </Accordion.Item>
         )}
 
-        {/* USER MANAGEMENT (ADMIN ONLY) */}
+        {/* USER MANAGEMENT */}
         {isAdmin && (
           <Accordion.Item eventKey="6">
             <Accordion.Header>
@@ -288,16 +161,17 @@ const Help: React.FC = () => {
             </Accordion.Header>
             <Accordion.Body>
               <p>
-                <b>User Management</b> is where Admins manage application users, roles, and credentials.
+                <b>User Management</b> allows Admins to manage system access, roles, and account activity.
               </p>
               <ol>
-                <li><b>Add / Edit Users:</b> Create new user accounts or update existing profiles (name, department, position, and role).</li>
-                <li><b>Reset Passwords:</b> Admins can reset a user's password via the Reset action. Use the password strength meter to choose a secure password.</li>
-                <li><b>Roles & Permissions:</b> Assign Admin or Viewer roles. Admins have full access to management functions.</li>
-                <li><b>Export & Audit:</b> Export the user list to CSV, PDF, or Excel for audits. Keep a log of changes and periodically review user roles.</li>
-                <li><b>Deactivate/Delete:</b> For security, remove or deactivate users who no longer require access.</li>
+                <li><b>Add / Edit Users:</b> Create or modify user accounts (name, department, role).</li>
+                <li><b>Reset Passwords:</b> Reset user passwords securely using the strength meter.</li>
+                <li><b>Roles & Permissions:</b> Assign <b>Admin</b> or <b>Viewer</b> roles to control system access.</li>
+                <li><b>Deactivate Accounts:</b> Admins can <b>deactivate</b> users who are inactive or no longer part of the institution without deleting their records.</li>
+                <li><b>Export & Audit:</b> Export user lists to CSV, PDF, or Excel for audit purposes.</li>
+                <li><b>Delete Users:</b> Permanently remove accounts when necessary for security compliance.</li>
               </ol>
-              <p className="text-muted"><b>Tip:</b> Use role assignment carefully. Only Admins should retain Admin rights to avoid accidental configuration changes.</p>
+              <p className="text-muted"><b>Tip:</b> Use deactivation instead of deletion for temporary account suspension.</p>
             </Accordion.Body>
           </Accordion.Item>
         )}
@@ -310,12 +184,12 @@ const Help: React.FC = () => {
           </Accordion.Header>
           <Accordion.Body>
             <ul>
-              <li><b>Page not loading:</b> Refresh the browser or check your internet.</li>
-              <li><b>No results showing:</b> Clear filters or confirm a dataset is uploaded.</li>
-              <li><b>Login/access issues:</b> Contact your administrator.</li>
+              <li><b>Page not loading:</b> Refresh your browser or check your internet connection.</li>
+              <li><b>No results showing:</b> Clear filters or ensure a dataset is uploaded.</li>
+              <li><b>Login issues:</b> Contact your system administrator.</li>
               <li><b>Charts not visible:</b> Use Chrome/Edge with JavaScript enabled.</li>
-              <li><b>Technical errors:</b> Take a screenshot and report to IT.</li>
-              <li><b>Dataset problems:</b> Ensure CSV format follows the required template.</li>
+              <li><b>Errors:</b> Take a screenshot and report to IT for assistance.</li>
+              <li><b>Dataset upload issues:</b> Confirm your CSV follows the official format template.</li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
