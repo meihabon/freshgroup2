@@ -9,6 +9,7 @@ import {
   HelpCircle,
   Layers,
   Download,
+  List
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 
@@ -110,6 +111,16 @@ const Help: React.FC = () => {
         'Tip: Deactivate users instead of deleting them to preserve history and data accountability.'
       ])
     }
+    
+    addSection('Activity Logs', [
+      'The Activity Logs page keeps a detailed record of all user actions in the system.',
+      'You can search by action, email, or description, and filter by date range.',
+      isAdmin
+        ? 'As an Admin, you can view the activity logs of all users across the system.'
+        : 'As a Viewer, you can only see your own activity logs for accountability and transparency.',
+      'Logs include details such as the action performed, affected records, and timestamps in Philippine Standard Time (PST).',
+      'Tip: Use the search and date filters to quickly locate important system events or track usage activity.'
+    ])
 
     addSection('Additional Help & Support', [
       'If pages fail to load, refresh the browser or check your internet connection.',
@@ -284,6 +295,28 @@ const Help: React.FC = () => {
             </Accordion.Body>
           </Accordion.Item>
         )}
+
+        {/* 🟢 New Activity Logs Section */}
+        <Accordion.Item eventKey="4">
+          <Accordion.Header>
+            <List size={18} className="me-2 text-success" /> Activity Logs
+          </Accordion.Header>
+          <Accordion.Body>
+            <p>
+              The <b>Activity Logs</b> page records all system actions for transparency and accountability.
+            </p>
+            <ul>
+              <li>View, search, and filter logs by date and action.</li>
+              {isAdmin ? (
+                <li><b>Admins</b> can view logs for <b>all users</b> in the system.</li>
+              ) : (
+                <li><b>Viewers</b> can only see <b>their own activity</b>.</li>
+              )}
+              <li>Each record includes date and time (PST), user email, and details of the action.</li>
+            </ul>
+            <p className="text-muted"><b>Tip:</b> Use logs to trace actions or confirm recent updates.</p>
+          </Accordion.Body>
+        </Accordion.Item>
 
         {/* HELP & SUPPORT */}
         <Accordion.Item eventKey="5">

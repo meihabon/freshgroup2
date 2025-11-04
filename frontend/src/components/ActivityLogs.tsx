@@ -46,15 +46,19 @@ function ActivityLogs() {
     fetchLogs()
   }, [API])
 
-  // ✅ Date only format
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+// ✅ Format date & time (PST)
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr)
+  return date.toLocaleString('en-PH', {
+    timeZone: 'Asia/Manila', // ensure PST
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
 
   // Filters
   const filteredLogs = logs.filter((log) => {
@@ -232,7 +236,7 @@ function ActivityLogs() {
                     {user?.role === 'Admin' && <th>User</th>}
                     <th>Action</th>
                     <th>Details</th>
-                    <th>Date</th>
+                    <th style={{ width: '180px' }}>Date & Time (PST)</th>
                   </tr>
                 </thead>
                 <tbody>
