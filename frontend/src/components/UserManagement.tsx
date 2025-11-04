@@ -23,6 +23,7 @@ import {
   EyeOff,
   Download,
   Settings,
+  ShieldOff
 } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import RecordViewModal from './RecordViewModal'
@@ -81,7 +82,7 @@ function UserManagement() {
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
-  
+
   const handleToggleActive = async (user: UserType) => {
   if (!window.confirm(`Are you sure you want to ${user.active ? "deactivate" : "activate"} this account?`))
     return;
@@ -520,24 +521,59 @@ const handleResetPassword = async () => {
                         </Badge>
                       </td>
                       <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
-                      <td data-label="Actions">
-                        <Button variant="outline-primary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowEdit(u); }}>
+                      <td data-label="Actions" className="text-nowrap">
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-2"
+                          title="Edit User"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShowEdit(u);
+                          }}
+                        >
                           <Edit size={14} />
                         </Button>
-                        <Button variant="outline-secondary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowResetPassword(u); }}>
+
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          className="me-2"
+                          title="Reset Password"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShowResetPassword(u);
+                          }}
+                        >
                           <Key size={14} />
                         </Button>
-                        <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id); }}>
+
+                        <Button
+                          variant={u.active ? "outline-danger" : "outline-success"}
+                          size="sm"
+                          title={u.active ? "Deactivate User" : "Activate User"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleActive(u);
+                          }}
+                        >
+                          {u.active ? <ShieldOff size={14} /> : <Shield size={14} />}
+                        </Button>
+                        
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="me-2"
+                          title="Delete User"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteUser(u.id);
+                          }}
+                        >
                           <Trash size={14} />
                         </Button>
-                        <Button
-                            variant={u.active ? "outline-danger" : "outline-success"}
-                            size="sm"
-                            onClick={() => handleToggleActive(u)}
-                          >
-                            {u.active ? "Deactivate" : "Activate"}
-                          </Button>
                       </td>
+
                     </tr>
                   ))}
               </tbody>
