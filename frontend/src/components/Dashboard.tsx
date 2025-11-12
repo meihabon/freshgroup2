@@ -82,37 +82,49 @@ function Dashboard() {
 
   const closeModal = () => setModalData(null)
 
-  // Interpretation helper
-  const getInterpretation = (title: string, data?: Record<string, number>) => {
-    if (!data || Object.keys(data).length === 0)
-      return 'No data available for interpretation.'
+// Interpretation helper
+const getInterpretation = (title: string, data?: Record<string, number>): string => {
+  if (!data || Object.keys(data).length === 0)
+    return 'No data available for interpretation.';
 
-    const total = Object.values(data).reduce((a, b) => a + b, 0)
-    const maxCategory = Object.keys(data).reduce((a, b) =>
-      data[a] > data[b] ? a : b
-    )
-    const maxValue = data[maxCategory] ?? 0
-    const percentage = total > 0 ? ((maxValue / total) * 100).toFixed(1) : '0.0'
+  const entries = Object.entries(data);
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
 
-    switch (title) {
-      case 'Sex Distribution':
-        return `Most students identify as ${maxCategory} (${percentage}% of the sample).`
-      case 'Program Distribution':
-        return `The largest share of students are enrolled in ${maxCategory} (${percentage}%).`
-      case 'Municipality Distribution':
-        return `${maxCategory} contributes the highest number of students (${percentage}%).`
-      case 'Income Distribution':
-        return `The ${maxCategory} income tier accounts for ${percentage}% of students.`
-      case 'SHS Type Distribution':
-        return `${maxCategory} is the predominant SHS background (${percentage}%).`
-      case 'SHS Origin Distribution':
-        return `${maxCategory} is the most common senior high school origin (${percentage}%).`
-      case 'Honors Distribution':
-        return `${maxCategory} represents ${percentage}% of students in honors classification.`
-      default:
-        return 'This chart provides insights into student demographics and academic characteristics.'
-    }
+  // Detect most & least automatically
+  const maxEntry = entries.reduce((a, b) => (a[1] > b[1] ? a : b));
+  const minEntry = entries.reduce((a, b) => (a[1] < b[1] ? a : b));
+  const [maxCategory, maxValue] = maxEntry;
+  const [minCategory, minValue] = minEntry;
+
+  const percentage = total > 0 ? ((maxValue / total) * 100).toFixed(1) : '0.0';
+  const leastPercentage = total > 0 ? ((minValue / total) * 100).toFixed(1) : '0.0';
+
+  switch (title) {
+    case 'Sex Distribution':
+      return `The majority of students are identified as ${maxCategory}, comprising ${percentage}%. In contrast, only ${leastPercentage}% are identified as ${minCategory}.`;
+
+    case 'Program Distribution':
+      return `The highest enrollment is observed in the ${maxCategory} program (${percentage}%), while the ${minCategory} program has the lowest enrollment (${leastPercentage}%).`;
+
+    case 'Municipality Distribution':
+      return `A greater number of students are from ${maxCategory} (${percentage}%), whereas the fewest are from ${minCategory} (${leastPercentage}%).`;
+
+    case 'Income Distribution':
+      return `Students belonging to the ${maxCategory.toLowerCase()} income bracket constitute the largest group (${percentage}%), while those in the ${minCategory.toLowerCase()} income bracket form the smallest (${leastPercentage}%).`;
+
+    case 'SHS Type Distribution':
+      return `Most respondents are graduates of ${maxCategory.toLowerCase()} senior high schools (${percentage}%), with only ${leastPercentage}% graduating from ${minCategory.toLowerCase()} schools.`;
+
+    case 'SHS Origin Distribution':
+      return `The most common senior high school of origin is ${maxCategory} (${percentage}%), while ${minCategory} represents the least (${leastPercentage}%).`;
+
+    case 'Honors Distribution':
+      return `The largest proportion of honors classifications is attributed to ${maxCategory} students (${percentage}%), whereas ${minCategory} students account for the smallest share (${leastPercentage}%).`;
+
+    default:
+      return 'This chart illustrates notable patterns in student demographics and academic characteristics.';
   }
+};
 
   if (loading) {
     return (
@@ -312,17 +324,18 @@ function Dashboard() {
       >
         <PieChart size={18} />
       </div>
-
-      {/* Switch */}
-      <Form.Check
-        type="switch"
-        id="chart-view-toggle"
-        checked={chartView === 'bar'}
-        onChange={() =>
-          setChartView(chartView === 'bar' ? 'doughnut' : 'bar')
-        }
-        className="m-0"
-      />
+        <Form.Check
+          type="switch"
+          id="chart-view-toggle"
+          checked={chartView === 'bar'}
+          onChange={() =>
+            setChartView(chartView === 'bar' ? 'doughnut' : 'bar')
+          }
+          className="m-0"
+          style={{
+            accentColor: '#28a745', // modern browsers
+          }}
+        />
 
       {/* Bar icon */}
       <div
