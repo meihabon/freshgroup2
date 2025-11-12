@@ -70,6 +70,20 @@ function Dashboard() {
       setLoading(false)
     }
   }
+const generateColors = (count: number) => {
+  const baseColors = [
+    '#4F46E5', '#22C55E', '#EAB308', '#06B6D4',
+    '#F43F5E', '#8B5CF6', '#F97316', '#14B8A6',
+    '#EC4899', '#A855F7', '#84CC16', '#E11D48',
+  ];
+  if (count <= baseColors.length) return baseColors.slice(0, count);
+
+  // Auto-extend with generated hues if needed
+  const extra = Array.from({ length: count - baseColors.length }, (_, i) => 
+    `hsl(${(i * 360) / count}, 70%, 55%)`
+  );
+  return [...baseColors, ...extra];
+};
 
   const formatNumber = (num: number) => new Intl.NumberFormat().format(num)
 
@@ -81,6 +95,30 @@ function Dashboard() {
   }
 
   const closeModal = () => setModalData(null)
+const normalizePercentages = (data: Record<string, number>) => {
+  const entries = Object.entries(data);
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+
+  // Compute precise percentages
+  const rawPercentages = entries.map(([key, value]) => ({
+    key,
+    percent: (value / total) * 100,
+  }));
+
+  // Floor to 2 decimals, then fix total to 100%
+  const rounded = rawPercentages.map(p => ({
+    ...p,
+    percent: Math.floor(p.percent * 100) / 100,
+  }));
+
+  let remainder = 100 - rounded.reduce((sum, p) => sum + p.percent, 0);
+  if (remainder > 0) {
+    const largest = rounded.reduce((a, b) => (a.percent > b.percent ? a : b));
+    largest.percent += remainder;
+  }
+
+  return rounded;
+};
 
 // Interpretation helper
 const getInterpretation = (title: string, data?: Record<string, number>): string => {
@@ -90,15 +128,35 @@ const getInterpretation = (title: string, data?: Record<string, number>): string
   const entries = Object.entries(data);
   const total = entries.reduce((sum, [, value]) => sum + value, 0);
 
-  // Detect most & least automatically
-  const maxEntry = entries.reduce((a, b) => (a[1] > b[1] ? a : b));
-  const minEntry = entries.reduce((a, b) => (a[1] < b[1] ? a : b));
-  const [maxCategory, maxValue] = maxEntry;
-  const [minCategory, minValue] = minEntry;
+  // Compute percentages precisely and make them sum to 100%
+  const rawPercentages = entries.map(([k, v]) => ({
+    key: k,
+    percent: (v / total) * 100,
+  }));
 
-  const percentage = total > 0 ? ((maxValue / total) * 100).toFixed(1) : '0.0';
-  const leastPercentage = total > 0 ? ((minValue / total) * 100).toFixed(1) : '0.0';
+  // Adjust rounding so total = 100%
+  const rounded = rawPercentages.map(p => ({
+    ...p,
+    percent: Math.floor(p.percent * 100) / 100, // two decimals, truncated not rounded
+  }));
 
+  let remainder = 100 - rounded.reduce((sum, p) => sum + p.percent, 0);
+  if (remainder > 0) {
+    // Distribute the remaining fraction (if any) to the largest category
+    const largest = rounded.reduce((a, b) => (a.percent > b.percent ? a : b));
+    largest.percent += remainder;
+  }
+
+  // Detect most & least categories from adjusted data
+  const maxEntry = rounded.reduce((a, b) => (a.percent > b.percent ? a : b));
+  const minEntry = rounded.reduce((a, b) => (a.percent < b.percent ? a : b));
+
+  const maxCategory = maxEntry.key;
+  const minCategory = minEntry.key;
+  const percentage = maxEntry.percent.toFixed(2);
+  const leastPercentage = minEntry.percent.toFixed(2);
+
+  // Interpretations
   switch (title) {
     case 'Sex Distribution':
       return `The majority of students are identified as ${maxCategory}, comprising ${percentage}%. In contrast, only ${leastPercentage}% are identified as ${minCategory}.`;
@@ -125,6 +183,7 @@ const getInterpretation = (title: string, data?: Record<string, number>): string
       return 'This chart illustrates notable patterns in student demographics and academic characteristics.';
   }
 };
+
 
   if (loading) {
     return (
@@ -446,38 +505,41 @@ const getInterpretation = (title: string, data?: Record<string, number>): string
               <Card className="h-100 shadow-sm">
                 <Card.Header className="fw-bold">{chart.title}</Card.Header>
                 <Card.Body>
-                  <Plot
-                    data={[
-                      {
-                        type: 'pie',
-                        labels: Object.keys(chart.data || {}),
-                        values: Object.values(chart.data || {}),
-                        hole: 0.4,
-                        textinfo: 'label+percent',
-                        textposition: 'outside',
-                        hoverinfo: 'label+value+percent', // ✅ tooltip info
-                        hovertemplate: '%{label}: %{value} students (%{percent})<extra></extra>',
-                        marker: {
-                          colors: [
-                            '#4F46E5', '#22C55E', '#EAB308', '#06B6D4',
-                            '#F43F5E', '#8B5CF6', '#F97316', '#14B8A6',
-                            '#EC4899', '#A855F7', '#84CC16', '#E11D48'
-                          ]
-                        },
-                        showlegend: false, // ✅ hide legend
-                      }
-                    ]}
-                    layout={{
-                      height: 300,
-                      margin: { t: 20, b: 20, l: 20, r: 20 },
-                      font: { size: 11 },
-                      plot_bgcolor: '#fff',
-                      paper_bgcolor: '#fff',
-                      showlegend: false, // ✅ ensure hidden
-                    }}
-                    config={{ displayModeBar: false }}
-                    style={{ width: '100%' }}
-                  />
+                  {(() => {
+                    const normalized = normalizePercentages(chart.data || {});
+                    const labels = normalized.map(n => n.key);
+                    const values = normalized.map(n => n.percent);
+                    const colors = generateColors(labels.length);
+                    return (
+                      <Plot
+                        data={[
+                          {
+                            type: 'pie',
+                            labels,
+                            values,
+                            hole: 0.4,
+                            textinfo: 'label+percent',
+                            textposition: 'outside',
+                            hoverinfo: 'label+value+percent',
+                            hovertemplate: '%{label}: %{value:.2f}% (%{customdata} students)<extra></extra>',
+                            customdata: Object.values(chart.data || {}),
+                            marker: { colors },
+                            showlegend: false,
+                          },
+                        ]}
+                        layout={{
+                          height: 300,
+                          margin: { t: 20, b: 20, l: 20, r: 20 },
+                          font: { size: 11 },
+                          plot_bgcolor: '#fff',
+                          paper_bgcolor: '#fff',
+                          showlegend: false,
+                        }}
+                        config={{ displayModeBar: false }}
+                        style={{ width: '100%' }}
+                      />
+                    );
+                  })()}
 
 
                   <Accordion className="mt-3">
