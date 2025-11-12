@@ -47,7 +47,11 @@ function Dashboard() {
   const [error, setError] = useState('')
   const [modalData, setModalData] = useState<{ title: string; data: Record<string, number> } | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortType, setSortType] = useState<'alphabetical' | 'count'>('alphabetical')
+  const [sortBy, setSortBy] = useState<'alphabetical' | 'count'>('alphabetical')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [chartView, setChartView] = useState<'doughnut' | 'bar'>('doughnut')
+
+
 
   useEffect(() => {
     fetchStats()
@@ -70,7 +74,8 @@ function Dashboard() {
 
   const openModal = (title: string, data: Record<string, number>) => {
     setSearchTerm('')
-    setSortType('alphabetical')
+    setSortBy('alphabetical')
+    setSortOrder('asc')
     setModalData({ title, data })
   }
 
@@ -141,14 +146,21 @@ function Dashboard() {
     { title: 'Honors Distribution', data: stats.honors_distribution },
   ]
 
-  const filteredAndSortedData = modalData
-    ? Object.entries(modalData.data)
-        .filter(([key]) => key.toLowerCase().includes(searchTerm.toLowerCase()))
-        .sort((a, b) => {
-          if (sortType === 'alphabetical') return a[0].localeCompare(b[0])
-          return b[1] - a[1]
-        })
-    : []
+const filteredAndSortedData = modalData
+  ? Object.entries(modalData.data)
+      .filter(([key]) => key.toLowerCase().includes(searchTerm.toLowerCase()))
+      .sort((a, b) => {
+        if (sortBy === 'alphabetical') {
+          return sortOrder === 'asc'
+            ? a[0].localeCompare(b[0])
+            : b[0].localeCompare(a[0])
+        } else {
+          return sortOrder === 'asc' ? a[1] - b[1] : b[1] - a[1]
+        }
+      })
+  : []
+
+
 
   return (
     <div className="fade-in">
@@ -256,117 +268,190 @@ function Dashboard() {
         </Col>
       </Row>
 
-      {/* DISTRIBUTION CHARTS */}
-      <h4 className="fw-bold mb-3">Distribution Charts</h4>
-      <Row>
-        {distributionCharts.map((chart, idx) => (
-          <Col lg={4} md={6} key={idx} className="mb-4">
-            <Card className="h-100 shadow-sm">
-              <Card.Header className="fw-bold">{chart.title}</Card.Header>
-              <Card.Body>
-                {chart.title === 'SHS Origin Distribution' ? (
-                  <Plot
-                    data={[
-                      {
-                        type: 'bar',
-                        x: Object.values(chart.data || {}),
-                        y: Object.keys(chart.data || {}),
-                        orientation: 'h',
-                      },
-                    ]}
-                    layout={{
-                      height: 350,
-                      margin: { t: 20, b: 30, l: 100, r: 20 },
-                      font: { size: 11 },
-                    }}
-                    config={{ displayModeBar: false }}
-                    style={{ width: '100%' }}
-                  />
-                ) : (
-                  <Plot
-                    data={[
-                      {
-                        type: 'pie',
-                        labels: Object.keys(chart.data || {}),
-                        values: Object.values(chart.data || {}),
-                        hole: 0.4,
-                        textinfo: 'label+percent',
-                        textposition: 'outside',
-                      },
-                    ]}
-                    layout={{
-                      height: 300,
-                      margin: { t: 20, b: 20, l: 20, r: 20 },
-                      showlegend: false,
-                      font: { size: 11 },
-                    }}
-                    config={{ displayModeBar: false }}
-                    style={{ width: '100%' }}
-                  />
-                )}
+{/* DISTRIBUTION CHARTS */}
+<h4 className="fw-bold mb-3">Distribution Charts</h4>
 
-                <Accordion className="mt-3">
-                  <Accordion.Item eventKey="0">
-                    <Accordion.Header>Interpretation</Accordion.Header>
-                    <Accordion.Body>
-                      <p
-                        className="text-muted"
-                        style={{ fontSize: '0.95rem', lineHeight: 1.4 }}
-                      >
-                        {getInterpretation(chart.title, chart.data)}
-                      </p>
-                    </Accordion.Body>
-                  </Accordion.Item>
-                </Accordion>
-              </Card.Body>
-            </Card>
-          </Col>
+{/* Toggle for chart view */}
+<Row className="mb-4">
+  <Col xs="auto" className="d-flex align-items-center">
+    <Form.Label className="fw-semibold mb-0 me-2">Chart View:</Form.Label>
+    <Form.Select
+      value={chartView}
+      onChange={(e) => setChartView(e.target.value as 'doughnut' | 'bar')}
+      style={{ width: '160px' }}
+    >
+      <option value="doughnut">Doughnut</option>
+      <option value="bar">Bar Chart</option>
+    </Form.Select>
+  </Col>
+</Row>
+
+{/* Chart rendering */}
+{chartView === 'bar' ? (
+  <>
+    {distributionCharts.map((chart, idx) => (
+      <Card className="mb-4 shadow-sm" key={idx}>
+        <Card.Header className="fw-bold">{chart.title}</Card.Header>
+        <Card.Body>
+          <Plot
+            data={[
+              {
+                type: 'bar',
+                x: Object.values(chart.data || {}),
+                y: Object.keys(chart.data || {}),
+                orientation: 'h', // horizontal layout
+                marker: {
+                  color: [
+                    '#4F46E5',
+                    '#22C55E',
+                    '#EAB308',
+                    '#06B6D4',
+                    '#F43F5E',
+                    '#8B5CF6',
+                  ],
+                },
+              },
+            ]}
+            layout={{
+              height: 400,
+              margin: { t: 20, b: 40, l: 150, r: 20 },
+              font: { size: 11 },
+              plot_bgcolor: '#fff',
+              paper_bgcolor: '#fff',
+            }}
+            config={{ displayModeBar: false }}
+            style={{ width: '100%' }}
+          />
+
+          <Accordion className="mt-3">
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>Interpretation</Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
+                  {getInterpretation(chart.title, chart.data)}
+                </p>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+        </Card.Body>
+      </Card>
+    ))}
+  </>
+) : (
+  <Row>
+    {distributionCharts.map((chart, idx) => (
+      <Col lg={4} md={6} key={idx} className="mb-4">
+        <Card className="h-100 shadow-sm">
+          <Card.Header className="fw-bold">{chart.title}</Card.Header>
+          <Card.Body>
+            <Plot
+              data={[
+                {
+                  type: 'pie',
+                  labels: Object.keys(chart.data || {}),
+                  values: Object.values(chart.data || {}),
+                  hole: 0.4,
+                  textinfo: 'label+percent',
+                  textposition: 'outside',
+                  marker: {
+                    colors: [
+                      '#4F46E5',
+                      '#22C55E',
+                      '#EAB308',
+                      '#06B6D4',
+                      '#F43F5E',
+                      '#8B5CF6',
+                    ],
+                  },
+                },
+              ]}
+              layout={{
+                height: 300,
+                margin: { t: 20, b: 20, l: 20, r: 20 },
+                showlegend: false,
+                font: { size: 11 },
+                plot_bgcolor: '#fff',
+                paper_bgcolor: '#fff',
+              }}
+              config={{ displayModeBar: false }}
+              style={{ width: '100%' }}
+            />
+
+            <Accordion className="mt-3">
+              <Accordion.Item eventKey="0">
+                <Accordion.Header>Interpretation</Accordion.Header>
+                <Accordion.Body>
+                  <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
+                    {getInterpretation(chart.title, chart.data)}
+                  </p>
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
+          </Card.Body>
+        </Card>
+      </Col>
+    ))}
+  </Row>
+)}
+
+{/* MODAL */}
+<Modal show={!!modalData} onHide={closeModal} centered size="lg">
+  <Modal.Header closeButton>
+    <Modal.Title>{modalData?.title}</Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body>
+    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <Form.Control
+        type="text"
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        style={{ width: '250px' }}
+      />
+
+      <div className="d-flex gap-2">
+        <Form.Select
+          value={sortBy}
+          onChange={(e) =>
+            setSortBy(e.target.value as 'alphabetical' | 'count')
+          }
+          style={{ width: '180px' }}
+        >
+          <option value="alphabetical">Sort by: Alphabetical</option>
+          <option value="count">Sort by: Count</option>
+        </Form.Select>
+
+        <Form.Select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+          style={{ width: '160px' }}
+        >
+          <option value="asc">Order: Ascending</option>
+          <option value="desc">Order: Descending</option>
+        </Form.Select>
+      </div>
+    </div>
+
+    <Table striped bordered hover responsive>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredAndSortedData.map(([key, value]) => (
+          <tr key={key}>
+            <td>{key}</td>
+            <td>{value}</td>
+          </tr>
         ))}
-      </Row>
+      </tbody>
+    </Table>
+  </Modal.Body>
+</Modal>
 
-      {/* MODAL */}
-      <Modal show={!!modalData} onHide={closeModal} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{modalData?.title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Row className="mb-3">
-            <Col md={6}>
-              <Form.Control
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </Col>
-            <Col md={6}>
-              <Form.Select
-                value={sortType}
-                onChange={(e) => setSortType(e.target.value as 'alphabetical' | 'count')}
-              >
-                <option value="alphabetical">Sort Alphabetically (A-Z)</option>
-                <option value="count">Sort by Count (Descending)</option>
-              </Form.Select>
-            </Col>
-          </Row>
-
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAndSortedData.map(([key, value]) => (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>{value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </Modal.Body>
-      </Modal>
     </div>
   )
 }
