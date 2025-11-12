@@ -223,13 +223,13 @@ function Dashboard() {
       <h4 className="fw-bold mb-3">SUMMARY</h4>
       <Row className="mb-4">
         {[ 
-          { icon: <User size={40} className="text-success me-3" />, title: stats.most_common_sex, label: 'Most Common Sex', data: stats.sex_distribution },
-          { icon: <GraduationCap size={40} className="text-success me-3" />, title: stats.most_common_program, label: 'Most Common Program', data: stats.program_distribution },
-          { icon: <MapPin size={40} className="text-warning me-3" />, title: stats.most_common_municipality, label: 'Most Common Municipality', data: stats.municipality_distribution },
-          { icon: <Coins size={40} className="text-warning me-3" />, title: stats.most_common_income, label: 'Most Common Income', data: stats.income_distribution },
-          { icon: <School size={40} className="text-info me-3" />, title: stats.most_common_shs, label: 'Most Common SHS Type', data: stats.shs_distribution },
-          { icon: <School size={40} className="text-primary me-3" />, title: stats.most_common_school, label: 'Most Common SHS Origin', data: stats.school_distribution },
-          { icon: <Award size={40} className="text-success me-3" />, title: stats.most_common_honors, label: 'Most Common Honors', data: stats.honors_distribution },
+          { icon: <User size={40} className="text-success me-3" />, title: stats.most_common_sex, label: 'Predominant Sex', data: stats.sex_distribution },
+          { icon: <GraduationCap size={40} className="text-success me-3" />, title: stats.most_common_program, label: 'Most Enrolled Program', data: stats.program_distribution },
+          { icon: <MapPin size={40} className="text-warning me-3" />, title: stats.most_common_municipality, label: 'Top Municipality of Origin', data: stats.municipality_distribution },
+          { icon: <Coins size={40} className="text-warning me-3" />, title: stats.most_common_income, label: 'Dominant Income Group', data: stats.income_distribution },
+          { icon: <School size={40} className="text-info me-3" />, title: stats.most_common_shs, label: 'Dominant SHS Type', data: stats.shs_distribution },
+          { icon: <School size={40} className="text-primary me-3" />, title: stats.most_common_school, label: 'Top SHS Seeder', data: stats.school_distribution },
+          { icon: <Award size={40} className="text-success me-3" />, title: stats.most_common_honors, label: 'Leading Honors Level', data: stats.honors_distribution },
         ].map((item, i) => (
           <Col md={3} key={i} className="mb-3">
             <Card
@@ -281,11 +281,16 @@ function Dashboard() {
         </Col>
       </Row>
 
-      {/* DISTRIBUTION CHARTS */}
-      <h4 className="fw-bold mb-3">Distribution Charts</h4>
-<Row className="mb-4">
+{/* DISTRIBUTION CHARTS */}
+<Row className="align-items-center justify-content-between mb-3">
+  {/* Left side - title */}
+  <Col xs="auto">
+    <h4 className="fw-bold mb-0">Distribution Charts</h4>
+  </Col>
+
+  {/* Right side - toggle */}
   <Col xs="auto" className="d-flex align-items-center">
-    <Form.Label className="fw-semibold mb-0 me-3">Chart View:</Form.Label>
+    <Form.Label className="fw-semibold mb-0 me-2">Chart View:</Form.Label>
     <div
       className="d-flex align-items-center border rounded-pill px-2 py-1 shadow-sm"
       style={{
@@ -298,14 +303,17 @@ function Dashboard() {
         setChartView(chartView === 'bar' ? 'doughnut' : 'bar')
       }
     >
+      {/* Doughnut icon */}
       <div
         className={`d-flex align-items-center justify-content-center rounded-circle p-2 ${
-          chartView === 'doughnut' ? 'bg-primary text-white' : 'text-muted'
+          chartView === 'doughnut' ? 'bg-success text-white' : 'text-muted'
         }`}
         style={{ transition: 'all 0.3s ease' }}
       >
         <PieChart size={18} />
       </div>
+
+      {/* Switch */}
       <Form.Check
         type="switch"
         id="chart-view-toggle"
@@ -315,9 +323,11 @@ function Dashboard() {
         }
         className="m-0"
       />
+
+      {/* Bar icon */}
       <div
         className={`d-flex align-items-center justify-content-center rounded-circle p-2 ${
-          chartView === 'bar' ? 'bg-primary text-white' : 'text-muted'
+          chartView === 'bar' ? 'bg-success text-white' : 'text-muted'
         }`}
         style={{ transition: 'all 0.3s ease' }}
       >
