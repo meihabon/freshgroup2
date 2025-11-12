@@ -558,62 +558,75 @@ const getInterpretation = (title: string, data?: Record<string, number>): string
           ))}
         </Row>
       )}
+{/* MODAL */}
+<Modal
+  show={!!modalData}
+  onHide={closeModal}
+  centered
+  size="lg"
+  backdrop="static"
+  keyboard={false}
+  dialogClassName="fixed-modal"
+>
+  <Modal.Header closeButton>
+    <Modal.Title>{modalData?.title}</Modal.Title>
+  </Modal.Header>
 
-      {/* MODAL */}
-      <Modal show={!!modalData} onHide={closeModal} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{modalData?.title}</Modal.Title>
-        </Modal.Header>
+  <Modal.Body
+    style={{
+      maxHeight: '70vh', // limits height to 70% of the viewport
+      overflowY: 'auto', // enables vertical scroll
+    }}
+  >
+    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <Form.Control
+        type="text"
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={e => setSearchTerm(e.target.value)}
+        style={{ width: '250px' }}
+      />
 
-        <Modal.Body>
-          <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <Form.Control
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              style={{ width: '250px' }}
-            />
+      <div className="d-flex gap-2">
+        <Form.Select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value as 'alphabetical' | 'count')}
+          style={{ width: '180px' }}
+        >
+          <option value="alphabetical">Sort by: Alphabetical</option>
+          <option value="count">Sort by: Count</option>
+        </Form.Select>
 
-            <div className="d-flex gap-2">
-              <Form.Select
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value as 'alphabetical' | 'count')}
-                style={{ width: '180px' }}
-              >
-                <option value="alphabetical">Sort by: Alphabetical</option>
-                <option value="count">Sort by: Count</option>
-              </Form.Select>
+        <Form.Select
+          value={sortOrder}
+          onChange={e => setSortOrder(e.target.value as 'asc' | 'desc')}
+          style={{ width: '160px' }}
+        >
+          <option value="asc">Order: Ascending</option>
+          <option value="desc">Order: Descending</option>
+        </Form.Select>
+      </div>
+    </div>
 
-              <Form.Select
-                value={sortOrder}
-                onChange={e => setSortOrder(e.target.value as 'asc' | 'desc')}
-                style={{ width: '160px' }}
-              >
-                <option value="asc">Order: Ascending</option>
-                <option value="desc">Order: Descending</option>
-              </Form.Select>
-            </div>
-          </div>
+    <Table striped bordered hover responsive>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredAndSortedData.map(([key, value]) => (
+          <tr key={key}>
+            <td>{key}</td>
+            <td>{value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  </Modal.Body>
+</Modal>
 
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAndSortedData.map(([key, value]) => (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>{value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </Modal.Body>
-      </Modal>
     </div>
   )
 }
