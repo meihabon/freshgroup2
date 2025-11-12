@@ -352,145 +352,213 @@ const getInterpretation = (title: string, data?: Record<string, number>): string
         </Col>
       </Row>
 
+
 {/* DISTRIBUTION CHARTS */}
 <Row className="align-items-center justify-content-between mb-3">
+  {/* Left side - title */}
   <Col xs="auto">
     <h4 className="fw-bold mb-0">Distribution Charts</h4>
   </Col>
-</Row>
 
-{/* Bar chart sorting controls */}
-<Row className="mb-3 align-items-center">
-  <Col xs="auto" className="d-flex align-items-center gap-2 flex-wrap">
-    <Form.Label className="fw-semibold mb-0">Sort by:</Form.Label>
-    <Form.Select
-      value={chartSortBy}
-      onChange={e => setChartSortBy(e.target.value as 'alphabetical' | 'count')}
-      style={{ width: '150px' }}
+  {/* Right side - toggle */}
+  <Col xs="auto" className="d-flex align-items-center">
+    <Form.Label className="fw-semibold mb-0 me-2">Chart View:</Form.Label>
+    <div
+      className="d-flex align-items-center border rounded-pill px-2 py-1 shadow-sm"
+      style={{
+        background: '#f8f9fa',
+        gap: '8px',
+        cursor: 'pointer',
+        transition: 'background 0.3s ease',
+      }}
+      onClick={() =>
+        setChartView(chartView === 'bar' ? 'doughnut' : 'bar')
+      }
     >
-      <option value="alphabetical">Alphabetical</option>
-      <option value="count">Count</option>
-    </Form.Select>
+      {/* Doughnut icon */}
+      <div
+        className={`d-flex align-items-center justify-content-center rounded-circle p-2 ${
+          chartView === 'doughnut' ? 'bg-success text-white' : 'text-muted'
+        }`}
+        style={{ transition: 'all 0.3s ease' }}
+      >
+        <PieChart size={18} />
+      </div>
+        <Form.Check
+          type="switch"
+          id="chart-view-toggle"
+          checked={chartView === 'bar'}
+          onChange={() =>
+            setChartView(chartView === 'bar' ? 'doughnut' : 'bar')
+          }
+          className="m-0"
+          style={{
+            accentColor: '#28a745', // modern browsers
+          }}
+        />
 
-    <Form.Select
-      value={chartSortOrder}
-      onChange={e => setChartSortOrder(e.target.value as 'asc' | 'desc')}
-      style={{ width: '140px' }}
-    >
-      <option value="asc">Ascending</option>
-      <option value="desc">Descending</option>
-    </Form.Select>
+      {/* Bar icon */}
+      <div
+        className={`d-flex align-items-center justify-content-center rounded-circle p-2 ${
+          chartView === 'bar' ? 'bg-success text-white' : 'text-muted'
+        }`}
+        style={{ transition: 'all 0.3s ease' }}
+      >
+        <BarChart2 size={18} />
+      </div>
+    </div>
   </Col>
 </Row>
 
-{/* Charts rendering */}
-{distributionCharts.map((chart, idx) => {
-  // Make only "SHS Origin Distribution" a horizontal bar chart
-  const isSHSOrigin = chart.title === 'SHS Origin Distribution';
+      {/* Bar chart sorting controls */}
+      {chartView === 'bar' && (
+        <Row className="mb-3 align-items-center">
+          <Col xs="auto" className="d-flex align-items-center gap-2 flex-wrap">
+            <Form.Label className="fw-semibold mb-0">Sort by:</Form.Label>
+            <Form.Select
+              value={chartSortBy}
+              onChange={e => setChartSortBy(e.target.value as 'alphabetical' | 'count')}
+              style={{ width: '150px' }}
+            >
+              <option value="alphabetical">Alphabetical</option>
+              <option value="count">Count</option>
+            </Form.Select>
 
-  const sortedEntries = Object.entries(chart.data || {}).sort((a, b) => {
-    if (chartSortBy === 'alphabetical') {
-      return chartSortOrder === 'asc'
-        ? a[0].localeCompare(b[0])
-        : b[0].localeCompare(a[0]);
-    } else {
-      return chartSortOrder === 'asc' ? a[1] - b[1] : b[1] - a[1];
-    }
-  });
+            <Form.Select
+              value={chartSortOrder}
+              onChange={e => setChartSortOrder(e.target.value as 'asc' | 'desc')}
+              style={{ width: '140px' }}
+            >
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </Form.Select>
+          </Col>
+        </Row>
+      )}
 
-  const labels = sortedEntries.map(([k]) => k);
-  const values = sortedEntries.map(([, v]) => v);
+      {/* Charts rendering */}
+      {chartView === 'bar' ? (
+        <>
+          {distributionCharts.map((chart, idx) => {
+            const sortedEntries = Object.entries(chart.data || {}).sort((a, b) => {
+              if (chartSortBy === 'alphabetical') {
+                return chartSortOrder === 'asc'
+                  ? a[0].localeCompare(b[0])
+                  : b[0].localeCompare(a[0])
+              } else {
+                return chartSortOrder === 'asc' ? a[1] - b[1] : b[1] - a[1]
+              }
+            })
+            const labels = sortedEntries.map(([k]) => k)
+            const values = sortedEntries.map(([, v]) => v)
 
-  return (
-    <Card className="mb-4 shadow-sm" key={idx}>
-      <Card.Header className="fw-bold">{chart.title}</Card.Header>
-      <Card.Body>
-        {isSHSOrigin ? (
-          // Horizontal bar chart for SHS Origin only
-          <Plot
-            data={[
-              {
-                type: 'bar',
-                x: values,
-                y: labels,
-                orientation: 'h',
-                text: values.map(v => `${v} students`),
-                hovertemplate: '%{y}: %{x} students<extra></extra>',
-                marker: {
-                  color: labels.map(
-                    (_, i) =>
-                      `hsl(${(i * 360) / labels.length}, 70%, 55%)`
-                  ),
-                },
-              },
-            ]}
-            layout={{
-              height: 400,
-              margin: { t: 20, b: 40, l: 150, r: 20 },
-              font: { size: 11 },
-              plot_bgcolor: '#fff',
-              paper_bgcolor: '#fff',
-            }}
-            config={{ displayModeBar: false }}
-            style={{ width: '100%' }}
-          />
-        ) : (
-          // Default doughnut chart for all others
-          (() => {
-            const normalized = normalizePercentages(chart.data || {});
-            const labels = normalized.map(n => n.key);
-            const values = normalized.map(n => n.percent);
-            const colors = generateColors(labels.length);
             return (
-              <Plot
-                data={[
-                  {
-                    type: 'pie',
-                    labels,
-                    values,
-                    hole: 0.4,
-                    textinfo: 'label+percent',
-                    textposition: 'outside',
-                    hoverinfo: 'label+value+percent',
-                    hovertemplate:
-                      '%{label}: %{value:.2f}% (%{customdata} students)<extra></extra>',
-                    customdata: Object.values(chart.data || {}),
-                    marker: { colors },
-                    showlegend: false,
-                  },
-                ]}
-                layout={{
-                  height: 300,
-                  margin: { t: 20, b: 20, l: 20, r: 20 },
-                  font: { size: 11 },
-                  plot_bgcolor: '#fff',
-                  paper_bgcolor: '#fff',
-                  showlegend: false,
-                }}
-                config={{ displayModeBar: false }}
-                style={{ width: '100%' }}
-              />
-            );
-          })()
-        )}
+              <Card className="mb-4 shadow-sm" key={idx}>
+                <Card.Header className="fw-bold">{chart.title}</Card.Header>
+                <Card.Body>
+                  <Plot
+                    data={[
+                      {
+                        type: 'bar',
+                        x: values,
+                        y: labels,
+                        orientation: 'h',
+                        text: values.map(v => `${v} students`),
+                        hovertemplate: '%{y}: %{x} students<extra></extra>', // ✅ nice tooltip
+                        marker: {
+                          color: labels.map(
+                            (_, i) =>
+                              `hsl(${(i * 360) / labels.length}, 70%, 55%)` // ✅ auto-generate vibrant rainbow colors
+                          ),
+                        },
+                      },
+                    ]}
+                    layout={{
+                      height: 400,
+                      margin: { t: 20, b: 40, l: 150, r: 20 },
+                      font: { size: 11 },
+                      plot_bgcolor: '#fff',
+                      paper_bgcolor: '#fff',
+                    }}
+                    config={{ displayModeBar: false }}
+                    style={{ width: '100%' }}
+                  />
 
-        <Accordion className="mt-3">
-          <Accordion.Item eventKey="0">
-            <Accordion.Header>Interpretation</Accordion.Header>
-            <Accordion.Body>
-              <p
-                className="text-muted"
-                style={{ fontSize: '0.95rem', lineHeight: 1.4 }}
-              >
-                {getInterpretation(chart.title, Object.fromEntries(sortedEntries))}
-              </p>
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </Card.Body>
-    </Card>
-  );
-})}
+                  <Accordion className="mt-3">
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>Interpretation</Accordion.Header>
+                      <Accordion.Body>
+                        <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
+                          {getInterpretation(chart.title, Object.fromEntries(sortedEntries))}
+                        </p>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+                </Card.Body>
+              </Card>
+            )
+          })}
+        </>
+      ) : (
+        <Row>
+          {distributionCharts.map((chart, idx) => (
+            <Col lg={4} md={6} key={idx} className="mb-4">
+              <Card className="h-100 shadow-sm">
+                <Card.Header className="fw-bold">{chart.title}</Card.Header>
+                <Card.Body>
+                  {(() => {
+                    const normalized = normalizePercentages(chart.data || {});
+                    const labels = normalized.map(n => n.key);
+                    const values = normalized.map(n => n.percent);
+                    const colors = generateColors(labels.length);
+                    return (
+                      <Plot
+                        data={[
+                          {
+                            type: 'pie',
+                            labels,
+                            values,
+                            hole: 0.4,
+                            textinfo: 'label+percent',
+                            textposition: 'outside',
+                            hoverinfo: 'label+value+percent',
+                            hovertemplate: '%{label}: %{value:.2f}% (%{customdata} students)<extra></extra>',
+                            customdata: Object.values(chart.data || {}),
+                            marker: { colors },
+                            showlegend: false,
+                          },
+                        ]}
+                        layout={{
+                          height: 300,
+                          margin: { t: 20, b: 20, l: 20, r: 20 },
+                          font: { size: 11 },
+                          plot_bgcolor: '#fff',
+                          paper_bgcolor: '#fff',
+                          showlegend: false,
+                        }}
+                        config={{ displayModeBar: false }}
+                        style={{ width: '100%' }}
+                      />
+                    );
+                  })()}
+
+
+                  <Accordion className="mt-3">
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>Interpretation</Accordion.Header>
+                      <Accordion.Body>
+                        <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
+                          {getInterpretation(chart.title, chart.data)}
+                        </p>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
       {/* MODAL */}
       <Modal
         show={!!modalData}
