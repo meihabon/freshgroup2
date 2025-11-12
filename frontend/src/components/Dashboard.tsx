@@ -17,7 +17,8 @@ import {
   Coins,
   School,
   Award,
-  User
+  User,
+  PieChart, BarChart2 
 } from 'lucide-react'
 import Plot from 'react-plotly.js'
 import { useAuth } from "../context/AuthContext"
@@ -152,7 +153,72 @@ function Dashboard() {
       <div className="mb-4">
         <h2 className="fw-bold">DASHBOARD</h2>
       </div>
+      <Card className="mb-4 shadow-sm border-0">
+        <Card.Body>
+          <Accordion>
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>
+                Why These Data Are Critical for the Institution
+              </Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted">
+                  The following indicators were carefully selected because they directly support
+                  academic planning, policy-making, student support services, and institutional
+                  accreditation. Each dataset provides actionable insights that enable
+                  evidence-based decision-making.
+                </p>
 
+                <Row>
+                  <Col md={6}>
+                    <ul>
+                      <li>
+                        <b>Income:</b> Identifies students in financial need for
+                        <i> scholarship prioritization, tuition assistance, and equity programs</i>.
+                        Crucial for OSAS and Finance in targeting support fairly.
+                      </li>
+                      <li>
+                        <b>Sex:</b> Enables
+                        <i> gender-sensitive programming and compliance with CHED gender policies</i>.
+                        Ensures equal opportunities in leadership, facilities, and student services.
+                      </li>
+                      <li>
+                        <b>Program:</b> Highlights the most in-demand courses, guiding
+                        <i> curriculum development, faculty allocation, and resource distribution</i>.
+                        Essential for deans in strategic planning.
+                      </li>
+                    </ul>
+                  </Col>
+
+                  <Col md={6}>
+                    <ul>
+                      <li>
+                        <b>Municipality:</b> Maps student origins for
+                        <i> outreach, transportation planning, and regional access programs</i>.
+                        Helps Admin assess geographic inclusivity.
+                      </li>
+                      <li>
+                        <b>SHS Type:</b> Differentiates public vs. private feeder schools, revealing
+                        <i> academic preparation gaps</i>. Faculty and Guidance can use this to design
+                        bridging programs or remedial support.
+                      </li>
+                      <li>
+                        <b>SHS Origin:</b> Identifies the specific senior high schools attended by students, uncovering 
+                        <i> feeder school patterns</i> that influence student readiness. This helps the institution 
+                        <i> strengthen partnerships</i> and align academic support with originating schools.
+                      </li>
+                      <li>
+                        <b>Honors:</b> Recognizes achievers and supports
+                        <i> merit-based scholarships, recognition programs, and academic excellence tracking</i>.
+                        Provides benchmarks for overall student performance.
+                      </li>
+                    </ul>
+                  </Col>
+                </Row>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+        </Card.Body>
+      </Card>
       {/* SUMMARY CARDS */}
       <h4 className="fw-bold mb-3">SUMMARY</h4>
       <Row className="mb-4">
@@ -217,21 +283,49 @@ function Dashboard() {
 
       {/* DISTRIBUTION CHARTS */}
       <h4 className="fw-bold mb-3">Distribution Charts</h4>
-
-      {/* Chart view toggle */}
-      <Row className="mb-4">
-        <Col xs="auto" className="d-flex align-items-center">
-          <Form.Label className="fw-semibold mb-0 me-2">Chart View:</Form.Label>
-          <Form.Select
-            value={chartView}
-            onChange={e => setChartView(e.target.value as 'doughnut' | 'bar')}
-            style={{ width: '160px' }}
-          >
-            <option value="doughnut">Doughnut</option>
-            <option value="bar">Bar Chart</option>
-          </Form.Select>
-        </Col>
-      </Row>
+<Row className="mb-4">
+  <Col xs="auto" className="d-flex align-items-center">
+    <Form.Label className="fw-semibold mb-0 me-3">Chart View:</Form.Label>
+    <div
+      className="d-flex align-items-center border rounded-pill px-2 py-1 shadow-sm"
+      style={{
+        background: '#f8f9fa',
+        gap: '8px',
+        cursor: 'pointer',
+        transition: 'background 0.3s ease',
+      }}
+      onClick={() =>
+        setChartView(chartView === 'bar' ? 'doughnut' : 'bar')
+      }
+    >
+      <div
+        className={`d-flex align-items-center justify-content-center rounded-circle p-2 ${
+          chartView === 'doughnut' ? 'bg-primary text-white' : 'text-muted'
+        }`}
+        style={{ transition: 'all 0.3s ease' }}
+      >
+        <PieChart size={18} />
+      </div>
+      <Form.Check
+        type="switch"
+        id="chart-view-toggle"
+        checked={chartView === 'bar'}
+        onChange={() =>
+          setChartView(chartView === 'bar' ? 'doughnut' : 'bar')
+        }
+        className="m-0"
+      />
+      <div
+        className={`d-flex align-items-center justify-content-center rounded-circle p-2 ${
+          chartView === 'bar' ? 'bg-primary text-white' : 'text-muted'
+        }`}
+        style={{ transition: 'all 0.3s ease' }}
+      >
+        <BarChart2 size={18} />
+      </div>
+    </div>
+  </Col>
+</Row>
 
       {/* Bar chart sorting controls */}
       {chartView === 'bar' && (
@@ -280,21 +374,28 @@ function Dashboard() {
                 <Card.Header className="fw-bold">{chart.title}</Card.Header>
                 <Card.Body>
                   <Plot
-                    data={[{
-                      type: 'bar',
-                      x: values,
-                      y: labels,
-                      orientation: 'h',
-                      marker: {
-                        color: ['#4F46E5','#22C55E','#EAB308','#06B6D4','#F43F5E','#8B5CF6']
-                      }
-                    }]}
+                    data={[
+                      {
+                        type: 'bar',
+                        x: values,
+                        y: labels,
+                        orientation: 'h',
+                        text: values.map(v => `${v} students`),
+                        hovertemplate: '%{y}: %{x} students<extra></extra>', // ✅ nice tooltip
+                        marker: {
+                          color: labels.map(
+                            (_, i) =>
+                              `hsl(${(i * 360) / labels.length}, 70%, 55%)` // ✅ auto-generate vibrant rainbow colors
+                          ),
+                        },
+                      },
+                    ]}
                     layout={{
                       height: 400,
                       margin: { t: 20, b: 40, l: 150, r: 20 },
                       font: { size: 11 },
                       plot_bgcolor: '#fff',
-                      paper_bgcolor: '#fff'
+                      paper_bgcolor: '#fff',
                     }}
                     config={{ displayModeBar: false }}
                     style={{ width: '100%' }}
@@ -323,19 +424,38 @@ function Dashboard() {
                 <Card.Header className="fw-bold">{chart.title}</Card.Header>
                 <Card.Body>
                   <Plot
-                    data={[{
-                      type: 'pie',
-                      labels: Object.keys(chart.data || {}),
-                      values: Object.values(chart.data || {}),
-                      hole: 0.4,
-                      textinfo: 'label+percent',
-                      textposition: 'outside',
-                      marker: { color: ['#4F46E5','#22C55E','#EAB308','#06B6D4','#F43F5E','#8B5CF6'] }
-                    }]}
-                    layout={{ height: 300, margin: { t: 20, b: 20, l: 20, r: 20 }, font: { size: 11 }, plot_bgcolor: '#fff', paper_bgcolor: '#fff' }}
+                    data={[
+                      {
+                        type: 'pie',
+                        labels: Object.keys(chart.data || {}),
+                        values: Object.values(chart.data || {}),
+                        hole: 0.4,
+                        textinfo: 'label+percent',
+                        textposition: 'outside',
+                        hoverinfo: 'label+value+percent', // ✅ tooltip info
+                        hovertemplate: '%{label}: %{value} students (%{percent})<extra></extra>',
+                        marker: {
+                          colors: [
+                            '#4F46E5', '#22C55E', '#EAB308', '#06B6D4',
+                            '#F43F5E', '#8B5CF6', '#F97316', '#14B8A6',
+                            '#EC4899', '#A855F7', '#84CC16', '#E11D48'
+                          ]
+                        },
+                        showlegend: false, // ✅ hide legend
+                      }
+                    ]}
+                    layout={{
+                      height: 300,
+                      margin: { t: 20, b: 20, l: 20, r: 20 },
+                      font: { size: 11 },
+                      plot_bgcolor: '#fff',
+                      paper_bgcolor: '#fff',
+                      showlegend: false, // ✅ ensure hidden
+                    }}
                     config={{ displayModeBar: false }}
                     style={{ width: '100%' }}
                   />
+
 
                   <Accordion className="mt-3">
                     <Accordion.Item eventKey="0">
