@@ -50,8 +50,8 @@ function Dashboard() {
   const [sortBy, setSortBy] = useState<'alphabetical' | 'count'>('alphabetical')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [chartView, setChartView] = useState<'doughnut' | 'bar'>('doughnut')
-
-
+  const [chartSortBy, setChartSortBy] = useState<'alphabetical' | 'count'>('alphabetical')
+  const [chartSortOrder, setChartSortOrder] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     fetchStats()
@@ -115,26 +115,14 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: '400px' }}
-      >
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
         <Spinner animation="border" variant="primary" />
       </div>
     )
   }
 
-  if (error) {
-    return <Alert variant="danger">{error}</Alert>
-  }
-
-  if (!stats) {
-    return (
-      <Alert variant="warning">
-        No data available. Please upload a dataset first.
-      </Alert>
-    )
-  }
+  if (error) return <Alert variant="danger">{error}</Alert>
+  if (!stats) return <Alert variant="warning">No data available. Please upload a dataset first.</Alert>
 
   const distributionCharts = [
     { title: 'Sex Distribution', data: stats.sex_distribution },
@@ -146,82 +134,43 @@ function Dashboard() {
     { title: 'Honors Distribution', data: stats.honors_distribution },
   ]
 
-const filteredAndSortedData = modalData
-  ? Object.entries(modalData.data)
-      .filter(([key]) => key.toLowerCase().includes(searchTerm.toLowerCase()))
-      .sort((a, b) => {
-        if (sortBy === 'alphabetical') {
-          return sortOrder === 'asc'
-            ? a[0].localeCompare(b[0])
-            : b[0].localeCompare(a[0])
-        } else {
-          return sortOrder === 'asc' ? a[1] - b[1] : b[1] - a[1]
-        }
-      })
-  : []
-
-
+  const filteredAndSortedData = modalData
+    ? Object.entries(modalData.data)
+        .filter(([key]) => key.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => {
+          if (sortBy === 'alphabetical') {
+            return sortOrder === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0])
+          } else {
+            return sortOrder === 'asc' ? a[1] - b[1] : b[1] - a[1]
+          }
+        })
+    : []
 
   return (
     <div className="fade-in">
-      {/* Title */}
+      {/* TITLE */}
       <div className="mb-4">
         <h2 className="fw-bold">DASHBOARD</h2>
       </div>
 
-      {/* SUMMARY SECTION */}
+      {/* SUMMARY CARDS */}
       <h4 className="fw-bold mb-3">SUMMARY</h4>
       <Row className="mb-4">
-        {[
-          {
-            icon: <User size={40} className="text-success me-3" />,
-            title: stats.most_common_sex,
-            label: 'Most Common Sex',
-            data: stats.sex_distribution
-          },
-          {
-            icon: <GraduationCap size={40} className="text-success me-3" />,
-            title: stats.most_common_program,
-            label: 'Most Common Program',
-            data: stats.program_distribution
-          },
-          {
-            icon: <MapPin size={40} className="text-warning me-3" />,
-            title: stats.most_common_municipality,
-            label: 'Most Common Municipality',
-            data: stats.municipality_distribution
-          },
-          {
-            icon: <Coins size={40} className="text-warning me-3" />,
-            title: stats.most_common_income,
-            label: 'Most Common Income',
-            data: stats.income_distribution
-          },
-          {
-            icon: <School size={40} className="text-info me-3" />,
-            title: stats.most_common_shs,
-            label: 'Most Common SHS Type',
-            data: stats.shs_distribution
-          },
-          {
-            icon: <School size={40} className="text-primary me-3" />,
-            title: stats.most_common_school,
-            label: 'Most Common SHS Origin',
-            data: stats.school_distribution
-          },
-          {
-            icon: <Award size={40} className="text-success me-3" />,
-            title: stats.most_common_honors,
-            label: 'Most Common Honors',
-            data: stats.honors_distribution
-          },
+        {[ 
+          { icon: <User size={40} className="text-success me-3" />, title: stats.most_common_sex, label: 'Most Common Sex', data: stats.sex_distribution },
+          { icon: <GraduationCap size={40} className="text-success me-3" />, title: stats.most_common_program, label: 'Most Common Program', data: stats.program_distribution },
+          { icon: <MapPin size={40} className="text-warning me-3" />, title: stats.most_common_municipality, label: 'Most Common Municipality', data: stats.municipality_distribution },
+          { icon: <Coins size={40} className="text-warning me-3" />, title: stats.most_common_income, label: 'Most Common Income', data: stats.income_distribution },
+          { icon: <School size={40} className="text-info me-3" />, title: stats.most_common_shs, label: 'Most Common SHS Type', data: stats.shs_distribution },
+          { icon: <School size={40} className="text-primary me-3" />, title: stats.most_common_school, label: 'Most Common SHS Origin', data: stats.school_distribution },
+          { icon: <Award size={40} className="text-success me-3" />, title: stats.most_common_honors, label: 'Most Common Honors', data: stats.honors_distribution },
         ].map((item, i) => (
           <Col md={3} key={i} className="mb-3">
             <Card
               className="h-100 clickable-card shadow-sm"
               style={{ cursor: 'pointer', transition: '0.2s' }}
-              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
-              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1.0)')}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
               onClick={() => openModal(item.label, item.data)}
             >
               <Card.Body className="d-flex align-items-center">
@@ -251,207 +200,215 @@ const filteredAndSortedData = modalData
           <Card
             className="h-100 clickable-card"
             style={{ cursor: 'pointer', transition: '0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
-            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1.0)')}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             onClick={() => (window.location.href = '/clusters')}
           >
             <Card.Body className="d-flex align-items-center">
               <Users size={40} className="text-primary me-3" />
               <div>
                 <h5 className="fw-bold mb-1">View Clusters</h5>
-                <p className="text-muted mb-0">
-                  Explore student groupings from the latest dataset
-                </p>
+                <p className="text-muted mb-0">Explore student groupings from the latest dataset</p>
               </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-{/* DISTRIBUTION CHARTS */}
-<h4 className="fw-bold mb-3">Distribution Charts</h4>
+      {/* DISTRIBUTION CHARTS */}
+      <h4 className="fw-bold mb-3">Distribution Charts</h4>
 
-{/* Toggle for chart view */}
-<Row className="mb-4">
-  <Col xs="auto" className="d-flex align-items-center">
-    <Form.Label className="fw-semibold mb-0 me-2">Chart View:</Form.Label>
-    <Form.Select
-      value={chartView}
-      onChange={(e) => setChartView(e.target.value as 'doughnut' | 'bar')}
-      style={{ width: '160px' }}
-    >
-      <option value="doughnut">Doughnut</option>
-      <option value="bar">Bar Chart</option>
-    </Form.Select>
-  </Col>
-</Row>
+      {/* Chart view toggle */}
+      <Row className="mb-4">
+        <Col xs="auto" className="d-flex align-items-center">
+          <Form.Label className="fw-semibold mb-0 me-2">Chart View:</Form.Label>
+          <Form.Select
+            value={chartView}
+            onChange={e => setChartView(e.target.value as 'doughnut' | 'bar')}
+            style={{ width: '160px' }}
+          >
+            <option value="doughnut">Doughnut</option>
+            <option value="bar">Bar Chart</option>
+          </Form.Select>
+        </Col>
+      </Row>
 
-{/* Chart rendering */}
-{chartView === 'bar' ? (
-  <>
-    {distributionCharts.map((chart, idx) => (
-      <Card className="mb-4 shadow-sm" key={idx}>
-        <Card.Header className="fw-bold">{chart.title}</Card.Header>
-        <Card.Body>
-          <Plot
-            data={[
-              {
-                type: 'bar',
-                x: Object.values(chart.data || {}),
-                y: Object.keys(chart.data || {}),
-                orientation: 'h', // horizontal layout
-                marker: {
-                  color: [
-                    '#4F46E5',
-                    '#22C55E',
-                    '#EAB308',
-                    '#06B6D4',
-                    '#F43F5E',
-                    '#8B5CF6',
-                  ],
-                },
-              },
-            ]}
-            layout={{
-              height: 400,
-              margin: { t: 20, b: 40, l: 150, r: 20 },
-              font: { size: 11 },
-              plot_bgcolor: '#fff',
-              paper_bgcolor: '#fff',
-            }}
-            config={{ displayModeBar: false }}
-            style={{ width: '100%' }}
-          />
+      {/* Bar chart sorting controls */}
+      {chartView === 'bar' && (
+        <Row className="mb-3 align-items-center">
+          <Col xs="auto" className="d-flex align-items-center gap-2 flex-wrap">
+            <Form.Label className="fw-semibold mb-0">Sort by:</Form.Label>
+            <Form.Select
+              value={chartSortBy}
+              onChange={e => setChartSortBy(e.target.value as 'alphabetical' | 'count')}
+              style={{ width: '150px' }}
+            >
+              <option value="alphabetical">Alphabetical</option>
+              <option value="count">Count</option>
+            </Form.Select>
 
-          <Accordion className="mt-3">
-            <Accordion.Item eventKey="0">
-              <Accordion.Header>Interpretation</Accordion.Header>
-              <Accordion.Body>
-                <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
-                  {getInterpretation(chart.title, chart.data)}
-                </p>
-              </Accordion.Body>
-            </Accordion.Item>
-          </Accordion>
-        </Card.Body>
-      </Card>
-    ))}
-  </>
-) : (
-  <Row>
-    {distributionCharts.map((chart, idx) => (
-      <Col lg={4} md={6} key={idx} className="mb-4">
-        <Card className="h-100 shadow-sm">
-          <Card.Header className="fw-bold">{chart.title}</Card.Header>
-          <Card.Body>
-            <Plot
-              data={[
-                {
-                  type: 'pie',
-                  labels: Object.keys(chart.data || {}),
-                  values: Object.values(chart.data || {}),
-                  hole: 0.4,
-                  textinfo: 'label+percent',
-                  textposition: 'outside',
-                  marker: {
-                    colors: [
-                      '#4F46E5',
-                      '#22C55E',
-                      '#EAB308',
-                      '#06B6D4',
-                      '#F43F5E',
-                      '#8B5CF6',
-                    ],
-                  },
-                },
-              ]}
-              layout={{
-                height: 300,
-                margin: { t: 20, b: 20, l: 20, r: 20 },
-                showlegend: false,
-                font: { size: 11 },
-                plot_bgcolor: '#fff',
-                paper_bgcolor: '#fff',
-              }}
-              config={{ displayModeBar: false }}
-              style={{ width: '100%' }}
+            <Form.Select
+              value={chartSortOrder}
+              onChange={e => setChartSortOrder(e.target.value as 'asc' | 'desc')}
+              style={{ width: '140px' }}
+            >
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </Form.Select>
+          </Col>
+        </Row>
+      )}
+
+      {/* Charts rendering */}
+      {chartView === 'bar' ? (
+        <>
+          {distributionCharts.map((chart, idx) => {
+            const sortedEntries = Object.entries(chart.data || {}).sort((a, b) => {
+              if (chartSortBy === 'alphabetical') {
+                return chartSortOrder === 'asc'
+                  ? a[0].localeCompare(b[0])
+                  : b[0].localeCompare(a[0])
+              } else {
+                return chartSortOrder === 'asc' ? a[1] - b[1] : b[1] - a[1]
+              }
+            })
+            const labels = sortedEntries.map(([k]) => k)
+            const values = sortedEntries.map(([, v]) => v)
+
+            return (
+              <Card className="mb-4 shadow-sm" key={idx}>
+                <Card.Header className="fw-bold">{chart.title}</Card.Header>
+                <Card.Body>
+                  <Plot
+                    data={[{
+                      type: 'bar',
+                      x: values,
+                      y: labels,
+                      orientation: 'h',
+                      marker: {
+                        color: ['#4F46E5','#22C55E','#EAB308','#06B6D4','#F43F5E','#8B5CF6']
+                      }
+                    }]}
+                    layout={{
+                      height: 400,
+                      margin: { t: 20, b: 40, l: 150, r: 20 },
+                      font: { size: 11 },
+                      plot_bgcolor: '#fff',
+                      paper_bgcolor: '#fff'
+                    }}
+                    config={{ displayModeBar: false }}
+                    style={{ width: '100%' }}
+                  />
+
+                  <Accordion className="mt-3">
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>Interpretation</Accordion.Header>
+                      <Accordion.Body>
+                        <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
+                          {getInterpretation(chart.title, Object.fromEntries(sortedEntries))}
+                        </p>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+                </Card.Body>
+              </Card>
+            )
+          })}
+        </>
+      ) : (
+        <Row>
+          {distributionCharts.map((chart, idx) => (
+            <Col lg={4} md={6} key={idx} className="mb-4">
+              <Card className="h-100 shadow-sm">
+                <Card.Header className="fw-bold">{chart.title}</Card.Header>
+                <Card.Body>
+                  <Plot
+                    data={[{
+                      type: 'pie',
+                      labels: Object.keys(chart.data || {}),
+                      values: Object.values(chart.data || {}),
+                      hole: 0.4,
+                      textinfo: 'label+percent',
+                      textposition: 'outside',
+                      marker: { color: ['#4F46E5','#22C55E','#EAB308','#06B6D4','#F43F5E','#8B5CF6'] }
+                    }]}
+                    layout={{ height: 300, margin: { t: 20, b: 20, l: 20, r: 20 }, font: { size: 11 }, plot_bgcolor: '#fff', paper_bgcolor: '#fff' }}
+                    config={{ displayModeBar: false }}
+                    style={{ width: '100%' }}
+                  />
+
+                  <Accordion className="mt-3">
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>Interpretation</Accordion.Header>
+                      <Accordion.Body>
+                        <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
+                          {getInterpretation(chart.title, chart.data)}
+                        </p>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
+
+      {/* MODAL */}
+      <Modal show={!!modalData} onHide={closeModal} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>{modalData?.title}</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <Form.Control
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{ width: '250px' }}
             />
 
-            <Accordion className="mt-3">
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>Interpretation</Accordion.Header>
-                <Accordion.Body>
-                  <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
-                    {getInterpretation(chart.title, chart.data)}
-                  </p>
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
-          </Card.Body>
-        </Card>
-      </Col>
-    ))}
-  </Row>
-)}
+            <div className="d-flex gap-2">
+              <Form.Select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as 'alphabetical' | 'count')}
+                style={{ width: '180px' }}
+              >
+                <option value="alphabetical">Sort by: Alphabetical</option>
+                <option value="count">Sort by: Count</option>
+              </Form.Select>
 
-{/* MODAL */}
-<Modal show={!!modalData} onHide={closeModal} centered size="lg">
-  <Modal.Header closeButton>
-    <Modal.Title>{modalData?.title}</Modal.Title>
-  </Modal.Header>
+              <Form.Select
+                value={sortOrder}
+                onChange={e => setSortOrder(e.target.value as 'asc' | 'desc')}
+                style={{ width: '160px' }}
+              >
+                <option value="asc">Order: Ascending</option>
+                <option value="desc">Order: Descending</option>
+              </Form.Select>
+            </div>
+          </div>
 
-  <Modal.Body>
-    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <Form.Control
-        type="text"
-        placeholder="Search..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{ width: '250px' }}
-      />
-
-      <div className="d-flex gap-2">
-        <Form.Select
-          value={sortBy}
-          onChange={(e) =>
-            setSortBy(e.target.value as 'alphabetical' | 'count')
-          }
-          style={{ width: '180px' }}
-        >
-          <option value="alphabetical">Sort by: Alphabetical</option>
-          <option value="count">Sort by: Count</option>
-        </Form.Select>
-
-        <Form.Select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-          style={{ width: '160px' }}
-        >
-          <option value="asc">Order: Ascending</option>
-          <option value="desc">Order: Descending</option>
-        </Form.Select>
-      </div>
-    </div>
-
-    <Table striped bordered hover responsive>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Count</th>
-        </tr>
-      </thead>
-      <tbody>
-        {filteredAndSortedData.map(([key, value]) => (
-          <tr key={key}>
-            <td>{key}</td>
-            <td>{value}</td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
-  </Modal.Body>
-</Modal>
-
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAndSortedData.map(([key, value]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Modal.Body>
+      </Modal>
     </div>
   )
 }
